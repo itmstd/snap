@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="1800" viewBox="0 0 600 1800">
+  <rect width="600" height="1800" fill="#ffffff"/>
+  <g>
+    <rect x="30" y="1660" width="16" height="16" rx="3" fill="#ff375f" transform="rotate(20 38 1668)"/>
+    <rect x="90" y="1700" width="14" height="14" rx="3" fill="#0a84ff" transform="rotate(-15 97 1707)"/>
+    <rect x="150" y="1665" width="16" height="16" rx="3" fill="#ffd60a" transform="rotate(30 158 1673)"/>
+    <rect x="220" y="1715" width="14" height="14" rx="3" fill="#32d74b" transform="rotate(-25 227 1722)"/>
+    <rect x="290" y="1670" width="16" height="16" rx="3" fill="#bf5af2" transform="rotate(10 298 1678)"/>
+    <rect x="360" y="1710" width="14" height="14" rx="3" fill="#ff9f0a" transform="rotate(-30 367 1717)"/>
+    <rect x="430" y="1665" width="16" height="16" rx="3" fill="#64d2ff" transform="rotate(18 438 1673)"/>
+    <rect x="500" y="1705" width="14" height="14" rx="3" fill="#ff375f" transform="rotate(-12 507 1712)"/>
+    <rect x="555" y="1665" width="14" height="14" rx="3" fill="#32d74b" transform="rotate(25 562 1672)"/>
+    <circle cx="65" cy="1740" r="7" fill="#bf5af2"/>
+    <circle cx="190" cy="1745" r="7" fill="#64d2ff"/>
+    <circle cx="330" cy="1740" r="7" fill="#ffd60a"/>
+    <circle cx="470" cy="1745" r="7" fill="#ff9f0a"/>
+    <circle cx="540" cy="1740" r="7" fill="#0a84ff"/>
+  </g>
+</svg>

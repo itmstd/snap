@@ -1,0 +1,8 @@
+{
+  "templates": [
+    { "id": "clean-white",    "name": "Clean White",    "file": "templates/clean-white.svg",    "textColor": "#1d1d1f", "subColor": "#86868b" },
+    { "id": "midnight-stars", "name": "Midnight Stars", "file": "templates/midnight-stars.svg", "textColor": "#f5f5f7", "subColor": "#9fa8c7" },
+    { "id": "pastel-sunset",  "name": "Pastel Sunset",  "file": "templates/pastel-sunset.svg",  "textColor": "#4a3540", "subColor": "#8a6f7c" },
+    { "id": "confetti-pop",   "name": "Confetti Pop",   "file": "templates/confetti-pop.svg",   "textColor": "#1d1d1f", "subColor": "#86868b" }
+  ]
+}

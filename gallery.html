@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gallery · Photobooth</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .page-head {
+    max-width: 1080px; margin: 0 auto;
+    padding: 64px 24px 32px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .page-head h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 700; letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--text) 30%, var(--text-dim));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .count { font-size: 14px; color: var(--text-dim); }
+
+  .feed {
+    max-width: 720px; margin: 0 auto;
+    padding: 0 24px 120px;
+    display: flex; flex-direction: column; gap: 56px;
+  }
+
+  /* ---------- Photo + chat bubbles ---------- */
+  .item { animation: rise .5s cubic-bezier(.22,1,.36,1) both; }
+
+  .photo-wrap {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: zoom-in;
+    transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
+  }
+  .photo-wrap:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 28px 60px -24px rgba(0,0,0,.55);
+  }
+  .photo-wrap img { width: 100%; display: block; }
+
+  .photo-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px;
+    font-size: 13px; color: var(--text-dim);
+  }
+
+  /* chat thread */
+  .thread {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-top: 14px;
+  }
+  .bubble-msg {
+    max-width: 75%;
+    padding: 9px 14px;
+    font-size: 14px; line-height: 1.35;
+    border-radius: 18px;
+    animation: bubbleIn .35s cubic-bezier(.22,1,.36,1) both;
+    word-break: break-word;
+  }
+  /* alternate left (gray) / right (blue), iMessage-style */
+  .bubble-msg.left {
+    align-self: flex-start;
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 6px;
+  }
+  .bubble-msg.right {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+  }
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(8px) scale(.92); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* message composer */
+  .composer {
+    display: flex; gap: 10px;
+    margin-top: 12px;
+  }
+  .composer input {
+    flex: 1;
+    padding: 11px 18px;
+    font: inherit; font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 980px;
+    outline: none;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .composer input:focus { border-color: var(--accent); background: var(--surface-hover); }
+  .composer input::placeholder { color: var(--text-dim); }
+  .composer button {
+    padding: 11px 20px;
+    font: inherit; font-size: 14px; font-weight: 600;
+    color: #fff; background: var(--accent);
+    border: none; border-radius: 980px;
+    cursor: pointer;
+    transition: transform .25s cubic-bezier(.22,1,.36,1), opacity .2s;
+  }
+  .composer button:hover { transform: scale(1.05); }
+  .composer button:disabled { opacity: .4; transform: none; cursor: default; }
+
+  .empty {
+    text-align: center; padding: 80px 0;
+    color: var(--text-dim); font-size: 15px;
+  }
+
+  .refresh-note {
+    text-align: center;
+    padding-bottom: 60px;
+    font-size: 13px; color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a class="wordmark" href="index.html">◉ Photobooth</a>
+    <a class="nav-link" href="index.html">‹ Back to Booth</a>
+  </div>
+</nav>
+
+<div class="page-head">
+  <h1>Gallery</h1>
+  <span class="count" id="count"></span>
+</div>
+
+<div class="feed" id="feed"></div>
+<div class="empty hidden" id="empty">No photos yet — be the first from the booth.</div>
+<div class="refresh-note" id="refreshNote"></div>
+
+<div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { list, sendMessage } from './storage.js';
+  import { $, toast, initLightbox } from './shared.js';
+
+  const openLightbox = initLightbox();
+  const MAX_MSG = 80;
+
+  function fmtDate(iso) {
+    try {
+      return new Date(iso).toLocaleString(undefined, {
+        day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'
+      });
+    } catch { return ''; }
+  }
+
+  function msgEl(m, i) {
+    const d = document.createElement('div');
+    d.className = 'bubble-msg ' + (i % 2 === 0 ? 'left' : 'right');
+    d.style.animationDelay = Math.min(i * 70, 500) + 'ms';
+    d.textContent = m.t; // textContent — no HTML injection
+    return d;
+  }
+
+  function renderItem(img, idx) {
+    const item = document.createElement('div');
+    item.className = 'item';
+    item.style.animationDelay = Math.min(idx * 80, 600) + 'ms';
+
+    // photo
+    const wrap = document.createElement('div');
+    wrap.className = 'photo-wrap';
+    const el = document.createElement('img');
+    el.loading = 'lazy';
+    el.src = img.url;
+    el.alt = img.name;
+    wrap.appendChild(el);
+    wrap.addEventListener('click', () => openLightbox(img.url));
+    item.appendChild(wrap);
+
+    // meta row
+    const meta = document.createElement('div');
+    meta.className = 'photo-meta';
+    const when = document.createElement('span');
+    when.textContent = fmtDate(img.created);
+    const msgCount = document.createElement('span');
+    const msgs = img.messages || [];
+    msgCount.textContent = msgs.length ? `💬 ${msgs.length}` : '';
+    meta.appendChild(when);
+    meta.appendChild(msgCount);
+    item.appendChild(meta);
+
+    // thread
+    const thread = document.createElement('div');
+    thread.className = 'thread';
+    msgs.forEach((m, i) => thread.appendChild(msgEl(m, i)));
+    item.appendChild(thread);
+
+    // composer
+    const composer = document.createElement('form');
+    composer.className = 'composer';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.maxLength = MAX_MSG;
+    input.placeholder = 'Say something…';
+    input.autocomplete = 'off';
+    const btn = document.createElement('button');
+    btn.type = 'submit';
+    btn.textContent = 'Send';
+    composer.appendChild(input);
+    composer.appendChild(btn);
+    item.appendChild(composer);
+
+    composer.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      btn.disabled = true;
+      try {
+        const res = await sendMessage(img.id, text);
+        if (res.ok) {
+          thread.appendChild(msgEl({ t: text }, msgs.length));
+          input.value = '';
+          msgCount.textContent = `💬 ${msgs.length + 1}`;
+          msgs.push({ t: text });
+        } else {
+          toast('Message failed: ' + res.error);
+        }
+      } catch {
+        toast('Message failed — backend not reachable');
+      }
+      btn.disabled = false;
+      input.focus();
+    });
+
+    return item;
+  }
+
+  async function refresh() {
+    try {
+      const res = await list();
+      if (!res.ok) throw new Error(res.error);
+      $('count').textContent = res.images.length + (res.images.length === 1 ? ' photo' : ' photos');
+      $('empty').classList.toggle('hidden', res.images.length > 0);
+      $('feed').innerHTML = '';
+      res.images.forEach((img, i) => $('feed').appendChild(renderItem(img, i)));
+      $('refreshNote').textContent = 'Refreshes automatically every 20 seconds';
+    } catch {
+      $('empty').classList.remove('hidden');
+      $('empty').textContent = 'Gallery unavailable — backend not connected yet.';
+      $('refreshNote').textContent = '';
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 20000);
+</script>
+</body>
+</html>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photobooth</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ---------- Ambient floating bubbles ---------- */
+  #bubbleLayer {
+    position: fixed; inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .bubble {
+    position: absolute;
+    bottom: -30vh;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 50px -18px rgba(0,0,0,.55);
+    opacity: 0;
+    will-change: transform, opacity;
+    animation: floatUp linear forwards;
+  }
+  .bubble img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  @keyframes floatUp {
+    0%   { opacity: 0; transform: translate3d(var(--x0), 0, 0) scale(var(--s0)) rotate(var(--r0)); }
+    8%   { opacity: var(--o); }
+    85%  { opacity: var(--o); }
+    100% { opacity: 0; transform: translate3d(var(--x1), -145vh, 0) scale(var(--s1)) rotate(var(--r1)); }
+  }
+  @media (prefers-reduced-motion: reduce) { #bubbleLayer { display: none; } }
+
+  /* keep interactive content above the bubble layer */
+  nav, .hero, .dropzone-wrap, .viewall-wrap { position: relative; z-index: 2; }
+
+  /* ---------- Source picker ---------- */
+  .picker {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 560px) { .picker { grid-template-columns: 1fr; } }
+
+  .pick-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform .35s cubic-bezier(.22,1,.36,1),
+                border-color .25s ease, background .25s ease,
+                box-shadow .35s ease;
+  }
+  .pick-card:hover {
+    border-color: var(--accent);
+    background: var(--surface-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 24px 60px -24px rgba(10, 132, 255, 0.35);
+  }
+  .pick-card .dz-icon { margin-bottom: 14px; }
+
+  /* ---------- Drop zone ---------- */
+  .dropzone-wrap { max-width: 640px; margin: 0 auto; padding: 24px; }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 14px;
+    font-size: 14px; font-weight: 500;
+    color: var(--accent);
+    cursor: pointer;
+    border: none; background: none; padding: 0;
+    font-family: inherit;
+  }
+  .back-link:hover { text-decoration: underline; }
+
+  .dropzone {
+    position: relative;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    padding: 56px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform .35s cubic-bezier(.22,1,.36,1),
+                border-color .25s ease, background .25s ease,
+                box-shadow .35s ease;
+  }
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--accent);
+    background: var(--surface-hover);
+    transform: scale(1.015);
+    box-shadow: 0 24px 60px -24px rgba(10, 132, 255, 0.35);
+  }
+  .dropzone input { display: none; }
+
+  .dz-icon {
+    width: 56px; height: 56px; margin: 0 auto 18px;
+    border-radius: 16px;
+    display: grid; place-items: center;
+    background: linear-gradient(145deg, var(--accent), #5e5ce6);
+    box-shadow: 0 12px 28px -10px rgba(10, 132, 255, 0.6);
+    transition: transform .35s cubic-bezier(.22,1,.36,1);
+  }
+  .dropzone:hover .dz-icon { transform: translateY(-4px) scale(1.05); }
+  .dz-icon svg { width: 26px; height: 26px; stroke: #fff; }
+
+  .dz-title { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .dz-sub { margin-top: 6px; font-size: 13px; color: var(--text-dim); }
+
+  .preview {
+    display: none;
+    margin-top: 20px;
+    align-items: center; gap: 14px;
+    text-align: left;
+  }
+  .preview.show { display: flex; animation: rise .4s cubic-bezier(.22,1,.36,1); }
+  .preview img {
+    width: 64px; height: 64px; object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+  }
+  .preview .meta { flex: 1; min-width: 0; }
+  .preview .name {
+    font-size: 14px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .preview .size { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ---------- View all ---------- */
+  .viewall-wrap { text-align: center; padding: 24px 24px 96px; }
+
+  /* ---------- Camera ---------- */
+  .camera-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    padding: 24px;
+    text-align: center;
+    animation: rise .4s cubic-bezier(.22,1,.36,1);
+  }
+  .camera-view {
+    width: 100%;
+    border-radius: var(--radius-md);
+    background: #000;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+  .camera-actions {
+    display: flex; justify-content: center; align-items: center;
+    gap: 20px; margin-top: 20px;
+  }
+  .shutter {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: transform .2s cubic-bezier(.22,1,.36,1);
+    box-shadow: 0 0 0 2px var(--border);
+  }
+  .shutter::after {
+    content: '';
+    position: absolute; inset: 6px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform .15s ease;
+  }
+  .shutter:hover { transform: scale(1.06); }
+  .shutter:active::after { transform: scale(.85); }
+
+  .camera-error { padding: 40px 16px; color: var(--text-dim); font-size: 15px; line-height: 1.5; }
+
+  /* ---------- Template picker ---------- */
+  .template-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 560px) { .template-picker { grid-template-columns: 1fr; } }
+
+  .tmpl-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform .35s cubic-bezier(.22,1,.36,1),
+                border-color .25s ease, background .25s ease,
+                box-shadow .35s ease;
+  }
+  .tmpl-card:hover {
+    border-color: var(--accent);
+    background: var(--surface-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 24px 60px -24px rgba(10, 132, 255, 0.35);
+  }
+  .tmpl-preview {
+    margin: 0 auto 16px;
+    width: 52px;
+    background: #fff;
+    border-radius: 6px;
+    padding: 5px;
+    display: flex; flex-direction: column; gap: 5px;
+    box-shadow: 0 8px 20px -8px rgba(0,0,0,.4);
+  }
+  .tmpl-preview span {
+    display: block;
+    border-radius: 3px;
+    background: linear-gradient(145deg, var(--accent), #5e5ce6);
+    aspect-ratio: 4 / 3;
+  }
+
+  /* ---------- Background theme picker ---------- */
+  .bg-picker {
+    display: flex; gap: 12px; justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .bg-swatch {
+    width: 44px; height: 74px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    object-fit: cover;
+    background: var(--surface-hover);
+    transition: transform .3s cubic-bezier(.22,1,.36,1), border-color .2s ease,
+                box-shadow .3s ease;
+  }
+  .bg-swatch:hover { transform: translateY(-3px); }
+  .bg-swatch.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(10,132,255,.35), 0 10px 24px -10px rgba(10,132,255,.5);
+    transform: translateY(-3px) scale(1.06);
+  }
+  .bg-label {
+    margin-top: 10px;
+    font-size: 12px; font-weight: 500;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  .shot-progress {
+    display: flex; justify-content: center; gap: 8px;
+    margin-top: 16px;
+  }
+  .shot-progress i {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--border);
+    transition: background .3s ease, transform .3s ease;
+  }
+  .shot-progress i.done { background: var(--accent); transform: scale(1.15); }
+  .shot-progress i.current { background: var(--text); }
+
+  .camera-counter {
+    margin-top: 14px;
+    font-size: 14px; font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: -0.01em;
+  }
+
+  .strip-review {
+    max-height: 65vh;
+    width: auto; max-width: 100%;
+    margin: 0 auto;
+    display: block;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    box-shadow: 0 24px 60px -20px rgba(0,0,0,.5);
+  }
+
+  .flash {
+    position: fixed; inset: 0; z-index: 250;
+    background: #fff;
+    opacity: 0; pointer-events: none;
+  }
+  .flash.go { animation: flashAnim .4s ease-out; }
+  @keyframes flashAnim { 0% { opacity: .9; } 100% { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div id="bubbleLayer" aria-hidden="true"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a class="wordmark" href="index.html">◉ Photobooth</a>
+    <a class="nav-link" href="gallery.html">View Gallery</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <h1>Every moment,<br>in one place.</h1>
+  <p>Drop a photo. Watch it float up with the rest.</p>
+</header>
+
+<div class="dropzone-wrap">
+
+  <!-- Step 1: choose source -->
+  <div class="picker" id="picker">
+    <div class="pick-card" id="pickGallery">
+      <div class="dz-icon">
+        <svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>
+        </svg>
+      </div>
+      <div class="dz-title">Choose from Gallery</div>
+      <div class="dz-sub">Pick or drop an existing photo</div>
+    </div>
+    <div class="pick-card" id="pickCamera">
+      <div class="dz-icon">
+        <svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>
+        </svg>
+      </div>
+      <div class="dz-title">Take a Photo</div>
+      <div class="dz-sub">Strips of 1, 2 or 3 shots</div>
+    </div>
+  </div>
+
+  <!-- Step 2a: gallery picker -->
+  <div id="galleryMode" class="hidden">
+    <button class="back-link" data-back>‹ Back</button>
+    <label class="dropzone" id="dropzone">
+      <input type="file" id="file" accept="image/jpeg,image/png,image/webp">
+      <div class="dz-icon">
+        <svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/>
+        </svg>
+      </div>
+      <div class="dz-title">Tap to choose, or drop a photo</div>
+      <div class="dz-sub">JPEG · PNG · WebP — up to 5 MB</div>
+      <div class="preview" id="preview">
+        <img id="previewImg" alt="">
+        <div class="meta">
+          <div class="name" id="previewName"></div>
+          <div class="size" id="previewSize"></div>
+        </div>
+      </div>
+    </label>
+    <div style="text-align:center; margin-top:20px;">
+      <button class="btn-upload" id="uploadBtn">Share Photo</button>
+    </div>
+  </div>
+
+  <!-- Step 2b: camera template picker -->
+  <div id="templateMode" class="hidden">
+    <button class="back-link" data-back>‹ Back</button>
+    <div class="template-picker">
+      <div class="tmpl-card" data-tmpl="1">
+        <div class="tmpl-preview"><span></span></div>
+        <div class="dz-title">Single Shot</div>
+        <div class="dz-sub">1 photo · 2×6 strip</div>
+      </div>
+      <div class="tmpl-card" data-tmpl="2">
+        <div class="tmpl-preview"><span></span><span></span></div>
+        <div class="dz-title">Double</div>
+        <div class="dz-sub">2 photos · 2×6 strip</div>
+      </div>
+      <div class="tmpl-card" data-tmpl="3">
+        <div class="tmpl-preview"><span></span><span></span><span></span></div>
+        <div class="dz-title">Classic Strip</div>
+        <div class="dz-sub">3 photos · 2×6 strip</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: camera -->
+  <div id="cameraMode" class="hidden">
+    <button class="back-link" data-back-to-templates>‹ Templates</button>
+    <div class="camera-card">
+      <video class="camera-view" id="cameraView" autoplay playsinline></video>
+      <canvas id="cameraCanvas" class="hidden"></canvas>
+      <img id="stripPreview" class="strip-review hidden" alt="Your photo strip">
+      <div class="camera-error hidden" id="cameraError"></div>
+      <div id="captureUI">
+        <div class="camera-counter" id="shotCounter"></div>
+        <div class="camera-actions" id="cameraActions">
+          <button class="shutter" id="shutterBtn" aria-label="Take photo"></button>
+        </div>
+        <div class="shot-progress" id="shotProgress"></div>
+        <div class="bg-picker" id="bgPicker"></div>
+        <div class="bg-label" id="bgLabel"></div>
+      </div>
+      <div class="camera-actions hidden" id="reviewActions">
+        <button class="btn-pill btn-ghost" id="retakeBtn">Retake All</button>
+        <button class="btn-pill btn-ghost" id="downloadBtn">Download</button>
+        <button class="btn-pill btn-primary" id="shareCameraBtn">Share Strip</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="viewall-wrap">
+  <a class="btn-pill btn-ghost" href="gallery.html" style="display:inline-block; text-decoration:none;">
+    View all photos →
+  </a>
+</div>
+
+<div class="flash" id="flash"></div>
+<div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { upload, list } from './storage.js';
+  import { $, toast, initLightbox } from './shared.js';
+
+  initLightbox();
+
+  const fileInput = $('file'), uploadBtn = $('uploadBtn');
+
+  /* ---------- Mode switching ---------- */
+  const views = { picker: $('picker'), gallery: $('galleryMode'), templates: $('templateMode'), camera: $('cameraMode') };
+
+  function show(mode) {
+    Object.entries(views).forEach(([k, el]) => el.classList.toggle('hidden', k !== mode));
+    if (mode !== 'camera') stopCamera();
+  }
+
+  $('pickGallery').addEventListener('click', () => show('gallery'));
+  $('pickCamera').addEventListener('click', () => show('templates'));
+  document.querySelectorAll('[data-back]').forEach(b =>
+    b.addEventListener('click', () => { resetGalleryMode(); show('picker'); })
+  );
+  document.querySelectorAll('[data-back-to-templates]').forEach(b =>
+    b.addEventListener('click', () => show('templates'))
+  );
+
+  /* ---------- Gallery mode ---------- */
+  function setFile(f) {
+    if (!f) return;
+    $('previewImg').src = URL.createObjectURL(f);
+    $('previewName').textContent = f.name;
+    $('previewSize').textContent = (f.size / 1024 / 1024).toFixed(2) + ' MB';
+    $('preview').classList.add('show');
+    uploadBtn.classList.add('show');
+  }
+
+  function resetGalleryMode() {
+    fileInput.value = '';
+    $('preview').classList.remove('show');
+    uploadBtn.classList.remove('show');
+  }
+
+  fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+
+  const dropzone = $('dropzone');
+  ['dragover', 'dragleave', 'drop'].forEach(ev =>
+    dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      dropzone.classList.toggle('dragover', ev === 'dragover');
+      if (ev === 'drop') {
+        const f = e.dataTransfer.files[0];
+        if (f) { fileInput.files = e.dataTransfer.files; setFile(f); }
+      }
+    })
+  );
+
+  uploadBtn.addEventListener('click', () => shareFile(fileInput.files[0], uploadBtn, resetGalleryMode));
+
+  /* ---------- Camera: templates + strips ---------- */
+  const STRIP = { W: 600, H: 1800, PAD: 30, GAP: 24, BOTTOM: 120, BG: '#ffffff' };
+
+  let stream = null;
+  let shotCount = 0;
+  let shots = [];
+  let stripBlob = null;
+
+  let bgTemplates = [];
+  let activeBg = null;
+  const bgImageCache = {};
+
+  function loadImage(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
+  async function loadBgTemplates() {
+    try {
+      const res = await fetch('templates/templates.json');
+      const data = await res.json();
+      bgTemplates = data.templates || [];
+    } catch {
+      bgTemplates = [];
+    }
+    if (bgTemplates.length && !activeBg) activeBg = bgTemplates[0];
+    renderBgPicker();
+    bgTemplates.forEach(t => {
+      loadImage(t.file).then(img => { bgImageCache[t.id] = img; }).catch(() => {});
+    });
+  }
+
+  function renderBgPicker() {
+    const wrap = $('bgPicker');
+    wrap.innerHTML = '';
+    bgTemplates.forEach(t => {
+      const img = document.createElement('img');
+      img.className = 'bg-swatch' + (activeBg && activeBg.id === t.id ? ' active' : '');
+      img.src = t.file;
+      img.alt = t.name;
+      img.title = t.name;
+      img.addEventListener('click', () => { activeBg = t; renderBgPicker(); });
+      wrap.appendChild(img);
+    });
+    $('bgLabel').textContent = activeBg ? 'Background: ' + activeBg.name : '';
+  }
+
+  loadBgTemplates();
+
+  document.querySelectorAll('.tmpl-card').forEach(card =>
+    card.addEventListener('click', () => {
+      shotCount = Number(card.dataset.tmpl);
+      startCamera();
+    })
+  );
+
+  async function startCamera() {
+    resetCapture();
+    show('camera');
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } },
+        audio: false,
+      });
+      $('cameraView').srcObject = stream;
+    } catch (err) {
+      $('cameraView').classList.add('hidden');
+      $('captureUI').classList.add('hidden');
+      const msg = $('cameraError');
+      msg.classList.remove('hidden');
+      msg.innerHTML = err.name === 'NotAllowedError'
+        ? 'Camera access was denied.<br>Allow camera permission in your browser and try again.'
+        : 'No camera available on this device.<br>Try “Choose from Gallery” instead.';
+    }
+  }
+
+  function stopCamera() {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  }
+
+  function resetCapture() {
+    shots = [];
+    stripBlob = null;
+    $('stripPreview').classList.add('hidden');
+    $('cameraView').classList.remove('hidden');
+    $('reviewActions').classList.add('hidden');
+    $('captureUI').classList.remove('hidden');
+    $('cameraError').classList.add('hidden');
+    renderProgress();
+  }
+
+  function renderProgress() {
+    $('shotCounter').textContent = `Photo ${Math.min(shots.length + 1, shotCount)} of ${shotCount}`;
+    const dots = $('shotProgress');
+    dots.innerHTML = '';
+    for (let i = 0; i < shotCount; i++) {
+      const d = document.createElement('i');
+      if (i < shots.length) d.className = 'done';
+      else if (i === shots.length) d.className = 'current';
+      dots.appendChild(d);
+    }
+  }
+
+  $('shutterBtn').addEventListener('click', () => {
+    const video = $('cameraView');
+    const shot = document.createElement('canvas');
+
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const targetRatio = 4 / 3;
+    let sw = vw, sh = vw / targetRatio;
+    if (sh > vh) { sh = vh; sw = vh * targetRatio; }
+    shot.width = sw; shot.height = sh;
+    const ctx = shot.getContext('2d');
+    ctx.translate(sw, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, sw, sh);
+
+    shots.push(shot);
+
+    const flash = $('flash');
+    flash.classList.remove('go');
+    void flash.offsetWidth;
+    flash.classList.add('go');
+
+    if (shots.length >= shotCount) composeStrip();
+    else renderProgress();
+  });
+
+  function composeStrip() {
+    const c = $('cameraCanvas');
+    c.width = STRIP.W; c.height = STRIP.H;
+    const ctx = c.getContext('2d');
+
+    const bgImg = activeBg && bgImageCache[activeBg.id];
+    if (bgImg) ctx.drawImage(bgImg, 0, 0, STRIP.W, STRIP.H);
+    else { ctx.fillStyle = STRIP.BG; ctx.fillRect(0, 0, STRIP.W, STRIP.H); }
+
+    const n = shots.length;
+    const availH = STRIP.H - STRIP.PAD * 2 - STRIP.BOTTOM - STRIP.GAP * (n - 1);
+    const cellH = Math.floor(availH / n);
+    const cellW = STRIP.W - STRIP.PAD * 2;
+
+    shots.forEach((shot, i) => {
+      const y = STRIP.PAD + i * (cellH + STRIP.GAP);
+      const cellRatio = cellW / cellH;
+      let sw = shot.width, sh = shot.width / cellRatio;
+      if (sh > shot.height) { sh = shot.height; sw = shot.height * cellRatio; }
+      const sx = (shot.width - sw) / 2, sy = (shot.height - sh) / 2;
+      ctx.drawImage(shot, sx, sy, sw, sh, STRIP.PAD, y, cellW, cellH);
+    });
+
+    const textColor = (activeBg && activeBg.textColor) || '#1d1d1f';
+    const subColor  = (activeBg && activeBg.subColor)  || '#86868b';
+    ctx.fillStyle = textColor;
+    ctx.font = '600 30px -apple-system, "SF Pro Text", "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('◉ PHOTOBOOTH', STRIP.W / 2, STRIP.H - STRIP.BOTTOM / 2 - 14);
+    ctx.fillStyle = subColor;
+    ctx.font = '400 18px -apple-system, "SF Pro Text", "Segoe UI", sans-serif';
+    ctx.fillText(new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }),
+                 STRIP.W / 2, STRIP.H - STRIP.BOTTOM / 2 + 16);
+
+    c.toBlob((blob) => {
+      stripBlob = blob;
+      $('stripPreview').src = URL.createObjectURL(blob);
+      $('stripPreview').classList.remove('hidden');
+      $('cameraView').classList.add('hidden');
+      $('captureUI').classList.add('hidden');
+      $('reviewActions').classList.remove('hidden');
+    }, 'image/jpeg', 0.92);
+  }
+
+  $('retakeBtn').addEventListener('click', resetCapture);
+
+  function downloadBlob(blob, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('Downloading…');
+  }
+
+  $('downloadBtn').addEventListener('click', () => {
+    if (stripBlob) downloadBlob(stripBlob, `photobooth-strip_${Date.now()}.jpg`);
+  });
+
+  $('shareCameraBtn').addEventListener('click', () => {
+    if (!stripBlob) return;
+    const f = new File([stripBlob], `strip_${Date.now()}.jpg`, { type: 'image/jpeg' });
+    shareFile(f, $('shareCameraBtn'), () => { resetCapture(); show('picker'); });
+  });
+
+  /* ---------- Shared upload ---------- */
+  async function shareFile(f, btn, onDone) {
+    if (!f) return;
+    btn.disabled = true;
+    const label = btn.textContent;
+    btn.textContent = 'Sharing…';
+    try {
+      const res = await upload(f);
+      if (res.ok) {
+        toast('Photo shared ✓');
+        onDone();
+        loadBubbles(); // let the new photo join the float
+      } else {
+        toast('Upload failed: ' + res.error);
+      }
+    } catch {
+      toast('Upload failed — backend not reachable');
+    }
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+
+  /* ---------- Floating bubbles ---------- */
+  let bubblePool = [];
+  let bubbleTimer = null;
+
+  function spawnBubble() {
+    if (!bubblePool.length) return;
+    const layer = $('bubbleLayer');
+    if (layer.childElementCount >= 9) return; // keep it ambient, not noisy
+
+    const img = bubblePool[Math.floor(Math.random() * bubblePool.length)];
+    const b = document.createElement('div');
+    b.className = 'bubble';
+
+    const size = 90 + Math.random() * 130;          // 90–220 px
+    const fromLeft = Math.random() < 0.5;
+    const edgeX = fromLeft
+      ? -(size * 0.4) + Math.random() * (innerWidth * 0.22)
+      : innerWidth - Math.random() * (innerWidth * 0.22) - size * 0.6;
+    const drift = (fromLeft ? 1 : -1) * (30 + Math.random() * 90);
+    const dur = 14 + Math.random() * 10;            // 14–24 s to cross the screen
+    const rot = (Math.random() * 10 - 5).toFixed(1);
+
+    b.style.width = size + 'px';
+    b.style.height = size + 'px';
+    b.style.left = '0px';
+    b.style.setProperty('--x0', edgeX + 'px');
+    b.style.setProperty('--x1', (edgeX + drift) + 'px');
+    b.style.setProperty('--s0', (0.85 + Math.random() * 0.2).toFixed(2));
+    b.style.setProperty('--s1', (1.0 + Math.random() * 0.15).toFixed(2));
+    b.style.setProperty('--r0', rot + 'deg');
+    b.style.setProperty('--r1', (-rot) + 'deg');
+    b.style.setProperty('--o', (0.5 + Math.random() * 0.4).toFixed(2));
+    b.style.animationDuration = dur + 's';
+
+    const el = document.createElement('img');
+    el.src = img.url;
+    el.alt = '';
+    el.draggable = false;
+    b.appendChild(el);
+    b.addEventListener('animationend', () => b.remove());
+    layer.appendChild(b);
+  }
+
+  async function loadBubbles() {
+    try {
+      const res = await list();
+      if (!res.ok) return;
+      bubblePool = res.images;
+      if (bubbleTimer) clearInterval(bubbleTimer);
+      if (!bubblePool.length) return;
+      for (let i = 0; i < 3; i++) setTimeout(spawnBubble, i * 900); // opening burst
+      bubbleTimer = setInterval(spawnBubble, 2200);
+    } catch { /* backend offline — page still works */ }
+  }
+
+  loadBubbles();
+</script>
+</body>
+</html>
