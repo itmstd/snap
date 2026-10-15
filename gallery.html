@@ -10,6 +10,7 @@
     max-width: 1080px; margin: 0 auto;
     padding: 64px 24px 32px;
     display: flex; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
   }
   .page-head h1 {
     font-size: clamp(32px, 5vw, 48px);
@@ -20,14 +21,55 @@
   }
   .count { font-size: 14px; color: var(--text-dim); }
 
-  .feed {
-    max-width: 720px; margin: 0 auto;
-    padding: 0 24px 120px;
-    display: flex; flex-direction: column; gap: 56px;
+  /* Mode Switcher */
+  .mode-switcher {
+    display: flex; background: var(--surface);
+    padding: 4px; border-radius: 980px;
+    border: 1px solid var(--border);
+  }
+  .mode-btn {
+    padding: 6px 14px; font-size: 13px; font-weight: 500;
+    border-radius: 980px; border: none; background: transparent;
+    color: var(--text-dim); cursor: pointer;
+    transition: all .2s ease;
+  }
+  .mode-btn.active {
+    background: var(--text);
+    color: var(--bg);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }
 
-  /* ---------- Photo + chat bubbles ---------- */
-  .item { animation: rise .5s cubic-bezier(.22,1,.36,1) both; }
+  .feed {
+    max-width: 1080px; margin: 0 auto;
+    padding: 0 24px 120px;
+    transition: all .4s cubic-bezier(.22, 1, .36, 1);
+  }
+  .feed.mode-masonry {
+    columns: 3 260px;
+    column-gap: 16px;
+    display: block;
+  }
+  .feed.mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    columns: none;
+  }
+  .feed.mode-stories {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+    columns: none;
+  }
+
+  .item { 
+    animation: rise .5s cubic-bezier(.22,1,.36,1) both; 
+    width: 100%;
+  }
+  .item.mode-stories {
+    max-width: 400px;
+  }
 
   .photo-wrap {
     position: relative;
@@ -43,6 +85,19 @@
     box-shadow: 0 28px 60px -24px rgba(0,0,0,.55);
   }
   .photo-wrap img { width: 100%; display: block; }
+
+  /* Grid mode: force square aspect ratio */
+  .mode-grid .photo-wrap img {
+    aspect-ratio: 1/1;
+    object-fit: cover;
+  }
+
+  /* Stories mode: focus on verticality */
+  .mode-stories .photo-wrap img {
+    max-height: 80vh;
+    object-fit: contain;
+    background: #000;
+  }
 
   .photo-meta {
     display: flex; justify-content: space-between; align-items: center;
@@ -132,11 +187,18 @@
 </nav>
 
 <div class="page-head">
-  <h1>Gallery</h1>
-  <span class="count" id="count"></span>
+  <h1 id="galleryTitle">Gallery</h1>
+  <div style="display:flex; align-items:center; gap:16px;">
+    <div class="mode-switcher" id="modeSwitcher">
+      <button class="mode-btn active" data-mode="masonry">Masonry</button>
+      <button class="mode-btn" data-mode="grid">Grid</button>
+      <button class="mode-btn" data-mode="stories">Stories</button>
+    </div>
+    <span class="count" id="count"></span>
+  </div>
 </div>
 
-<div class="feed" id="feed"></div>
+<div class="feed mode-masonry" id="feed"></div>
 <div class="empty hidden" id="empty">No photos yet — be the first from the booth.</div>
 <div class="refresh-note" id="refreshNote"></div>
 
@@ -246,8 +308,14 @@
       if (!res.ok) throw new Error(res.error);
       $('count').textContent = res.images.length + (res.images.length === 1 ? ' photo' : ' photos');
       $('empty').classList.toggle('hidden', res.images.length > 0);
+      
+      const currentMode = $('feed').className.split(' ').find(c => c.startsWith('mode-'));
       $('feed').innerHTML = '';
-      res.images.forEach((img, i) => $('feed').appendChild(renderItem(img, i)));
+      res.images.forEach((img, i) => {
+        const item = renderItem(img, i);
+        if (currentMode === 'mode-stories') item.classList.add('mode-stories');
+        $('feed').appendChild(item);
+      });
       $('refreshNote').textContent = 'Refreshes automatically every 20 seconds';
     } catch {
       $('empty').classList.remove('hidden');
@@ -255,6 +323,24 @@
       $('refreshNote').textContent = '';
     }
   }
+
+  /* ---------- Mode Switching ---------- */
+  $('modeSwitcher').addEventListener('click', (e) => {
+    const btn = e.target.closest('.mode-btn');
+    if (!btn) return;
+    const mode = btn.dataset.mode;
+
+    // Update buttons
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Update feed class
+    const feed = $('feed');
+    feed.className = 'feed mode-' + mode;
+
+    // Rerender items to apply mode-specific classes (like .mode-stories)
+    refresh();
+  });
 
   refresh();
   setInterval(refresh, 20000);

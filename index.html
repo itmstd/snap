@@ -18,16 +18,20 @@
     bottom: -30vh;
     border-radius: 24px;
     overflow: hidden;
-    border: 1px solid var(--border);
-    box-shadow: 0 20px 50px -18px rgba(0,0,0,.55);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px -12px rgba(0,0,0,.3);
     opacity: 0;
     will-change: transform, opacity;
     animation: floatUp linear forwards;
+    filter: blur(1px);
   }
-  .bubble img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bubble img { 
+    width: 100%; height: 100%; object-fit: cover; display: block; 
+    opacity: 0.8;
+  }
   @keyframes floatUp {
     0%   { opacity: 0; transform: translate3d(var(--x0), 0, 0) scale(var(--s0)) rotate(var(--r0)); }
-    8%   { opacity: var(--o); }
+    10%  { opacity: var(--o); }
     85%  { opacity: var(--o); }
     100% { opacity: 0; transform: translate3d(var(--x1), -145vh, 0) scale(var(--s1)) rotate(var(--r1)); }
   }
@@ -81,7 +85,7 @@
 
   .dropzone {
     position: relative;
-    border: 1.5px dashed var(--border);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     background: var(--surface);
     backdrop-filter: var(--blur);
@@ -89,7 +93,7 @@
     padding: 56px 32px;
     text-align: center;
     cursor: pointer;
-    transition: transform .35s cubic-bezier(.22,1,.36,1),
+    transition: transform .35s cubic-bezier(.22, 1, .36, 1),
                 border-color .25s ease, background .25s ease,
                 box-shadow .35s ease;
   }
@@ -97,7 +101,7 @@
     border-color: var(--accent);
     background: var(--surface-hover);
     transform: scale(1.015);
-    box-shadow: 0 24px 60px -24px rgba(10, 132, 255, 0.35);
+    box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.15), 0 24px 60px -24px rgba(10, 132, 255, 0.35);
   }
   .dropzone input { display: none; }
 
@@ -334,7 +338,7 @@
 
   <!-- Step 2a: gallery picker -->
   <div id="galleryMode" class="hidden">
-    <button class="back-link" data-back>‹ Back</button>
+    <button class="close-btn" data-back>×</button>
     <label class="dropzone" id="dropzone">
       <input type="file" id="file" accept="image/jpeg,image/png,image/webp">
       <div class="dz-icon">
@@ -701,40 +705,46 @@
   function spawnBubble() {
     if (!bubblePool.length) return;
     const layer = $('bubbleLayer');
-    if (layer.childElementCount >= 9) return; // keep it ambient, not noisy
+    if (layer.childElementCount >= 7) return;
 
-    const img = bubblePool[Math.floor(Math.random() * bubblePool.length)];
-    const b = document.createElement('div');
-    b.className = 'bubble';
+    const imgUrl = bubblePool[Math.floor(Math.random() * bubblePool.length)].url;
+    
+    // Create the image first to ensure it's loaded before showing the bubble
+    const img = new Image();
+    img.src = imgUrl;
+    img.onload = () => {
+      const b = document.createElement('div');
+      b.className = 'bubble';
 
-    const size = 90 + Math.random() * 130;          // 90–220 px
-    const fromLeft = Math.random() < 0.5;
-    const edgeX = fromLeft
-      ? -(size * 0.4) + Math.random() * (innerWidth * 0.22)
-      : innerWidth - Math.random() * (innerWidth * 0.22) - size * 0.6;
-    const drift = (fromLeft ? 1 : -1) * (30 + Math.random() * 90);
-    const dur = 14 + Math.random() * 10;            // 14–24 s to cross the screen
-    const rot = (Math.random() * 10 - 5).toFixed(1);
+      const size = 70 + Math.random() * 80; // slightly smaller bubbles
+      const fromLeft = Math.random() < 0.5;
+      
+      // Push bubbles further to the edges to avoid the center UI
+      const edgeX = fromLeft
+        ? -size * 0.4 + Math.random() * (innerWidth * 0.15)
+        : innerWidth - Math.random() * (innerWidth * 0.15) - size * 0.6;
+        
+      const drift = (fromLeft ? 1 : -1) * (20 + Math.random() * 60);
+      const dur = 16 + Math.random() * 10;
+      const rot = (Math.random() * 10 - 5).toFixed(1);
 
-    b.style.width = size + 'px';
-    b.style.height = size + 'px';
-    b.style.left = '0px';
-    b.style.setProperty('--x0', edgeX + 'px');
-    b.style.setProperty('--x1', (edgeX + drift) + 'px');
-    b.style.setProperty('--s0', (0.85 + Math.random() * 0.2).toFixed(2));
-    b.style.setProperty('--s1', (1.0 + Math.random() * 0.15).toFixed(2));
-    b.style.setProperty('--r0', rot + 'deg');
-    b.style.setProperty('--r1', (-rot) + 'deg');
-    b.style.setProperty('--o', (0.5 + Math.random() * 0.4).toFixed(2));
-    b.style.animationDuration = dur + 's';
+      b.style.width = size + 'px';
+      b.style.height = size + 'px';
+      b.style.left = '0px';
+      b.style.setProperty('--x0', edgeX + 'px');
+      b.style.setProperty('--x1', (edgeX + drift) + 'px');
+      b.style.setProperty('--s0', (0.8 + Math.random() * 0.2).toFixed(2));
+      b.style.setProperty('--s1', (1.0 + Math.random() * 0.1).toFixed(2));
+      b.style.setProperty('--r0', rot + 'deg');
+      b.style.setProperty('--r1', (-rot) + 'deg');
+      b.style.setProperty('--o', (0.4 + Math.random() * 0.3).toFixed(2));
+      b.style.animationDuration = dur + 's';
 
-    const el = document.createElement('img');
-    el.src = img.url;
-    el.alt = '';
-    el.draggable = false;
-    b.appendChild(el);
-    b.addEventListener('animationend', () => b.remove());
-    layer.appendChild(b);
+      img.draggable = false;
+      b.appendChild(img);
+      b.addEventListener('animationend', () => b.remove());
+      layer.appendChild(b);
+    };
   }
 
   async function loadBubbles() {
