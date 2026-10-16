@@ -36,6 +36,15 @@ export async function sendMessage(imageId, text) {
   return res.json();
 }
 
+export async function deleteItem(id, type) {
+  const res = await fetch(BACKEND_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ secret: SECRET, action: 'delete', id, type }),
+  });
+  return res.json();
+}
+
 function readAsDataURL(file) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();

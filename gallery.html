@@ -66,6 +66,7 @@
   .item { 
     animation: rise .5s cubic-bezier(.22,1,.36,1) both; 
     width: 100%;
+    margin-bottom: 32px;
   }
   .item.mode-stories {
     max-width: 400px;
@@ -85,6 +86,43 @@
     box-shadow: 0 28px 60px -24px rgba(0,0,0,.55);
   }
   .photo-wrap img { width: 100%; display: block; }
+
+  /* Edit Overlay */
+  .edit-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 5;
+  }
+  .photo-wrap:hover .edit-overlay, 
+  .photo-wrap.edit-active .edit-overlay {
+    opacity: 1; pointer-events: auto;
+  }
+  .edit-btn {
+    padding: 8px 16px; background: #fff; color: #000;
+    border: none; border-radius: 980px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: transform .2s ease;
+  }
+  .edit-btn:hover { transform: scale(1.1); }
+
+  /* Message delete button */
+  .msg-del {
+    position: absolute; right: 8px; top: 8px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(255,0,0,0.6); color: #fff;
+    border: none; cursor: pointer; font-size: 12px;
+    display: none; align-items: center; justify-content: center;
+    transition: background .2s ease;
+  }
+  .bubble-msg.edit-visible .msg-del { display: flex; }
+  .msg-del:hover { background: rgba(255,0,0,0.9); }
+
+  /* Edit mode state */
+  .item.edit-mode .bubble-msg { position: relative; }
+  .item.edit-mode .composer { display: none; }
 
   /* Grid mode: force square aspect ratio */
   .mode-grid .photo-wrap img {
@@ -138,11 +176,14 @@
 
   /* message composer */
   .composer {
-    display: flex; gap: 10px;
+    display: flex; gap: 8px;
     margin-top: 12px;
+    width: 100%;
+    box-sizing: border-box;
   }
   .composer input {
     flex: 1;
+    min-width: 0;
     padding: 11px 18px;
     font: inherit; font-size: 14px;
     color: var(--text);
@@ -155,12 +196,13 @@
   .composer input:focus { border-color: var(--accent); background: var(--surface-hover); }
   .composer input::placeholder { color: var(--text-dim); }
   .composer button {
-    padding: 11px 20px;
+    padding: 11px 16px;
     font: inherit; font-size: 14px; font-weight: 600;
     color: #fff; background: var(--accent);
     border: none; border-radius: 980px;
     cursor: pointer;
     transition: transform .25s cubic-bezier(.22,1,.36,1), opacity .2s;
+    white-space: nowrap;
   }
   .composer button:hover { transform: scale(1.05); }
   .composer button:disabled { opacity: .4; transform: none; cursor: default; }
@@ -206,7 +248,7 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
-  import { list, sendMessage } from './storage.js';
+  import { list, sendMessage, deleteItem } from './storage.js';
   import { $, toast, initLightbox } from './shared.js';
 
   const openLightbox = initLightbox();
@@ -224,7 +266,27 @@
     const d = document.createElement('div');
     d.className = 'bubble-msg ' + (i % 2 === 0 ? 'left' : 'right');
     d.style.animationDelay = Math.min(i * 70, 500) + 'ms';
-    d.textContent = m.t; // textContent — no HTML injection
+    
+    const text = document.createElement('span');
+    text.textContent = m.t;
+    d.appendChild(text);
+
+    const del = document.createElement('button');
+    del.className = 'msg-del';
+    del.textContent = '×';
+    del.onclick = async (e) => {
+      e.stopPropagation();
+      if (!confirm('Delete this message?')) return;
+      const res = await deleteItem(m.at, 'message');
+      if (res.ok) {
+        d.remove();
+        toast('Message removed');
+      } else {
+        toast('Delete failed: ' + res.error);
+      }
+    };
+    d.appendChild(del);
+
     return d;
   }
 
@@ -236,12 +298,24 @@
     // photo
     const wrap = document.createElement('div');
     wrap.className = 'photo-wrap';
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'edit-overlay';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.textContent = 'Edit';
+    overlay.appendChild(editBtn);
+    wrap.appendChild(overlay);
+
     const el = document.createElement('img');
     el.loading = 'lazy';
     el.src = img.url;
     el.alt = img.name;
     wrap.appendChild(el);
-    wrap.addEventListener('click', () => openLightbox(img.url));
+    wrap.addEventListener('click', (e) => {
+      if (e.target === editBtn) return;
+      openLightbox(img.url);
+    });
     item.appendChild(wrap);
 
     // meta row
@@ -277,6 +351,39 @@
     composer.appendChild(btn);
     item.appendChild(composer);
 
+    // Edit mode logic
+    editBtn.addEventListener('click', async () => {
+      const isEdit = item.classList.toggle('edit-mode');
+      wrap.classList.toggle('edit-active', isEdit);
+      
+      if (isEdit) {
+        // Show delete buttons on bubbles
+        thread.querySelectorAll('.bubble-msg').forEach(b => b.classList.add('edit-visible'));
+        // Add delete button to image itself
+        const delImgBtn = document.createElement('button');
+        delImgBtn.className = 'edit-btn';
+        delImgBtn.style.marginLeft = '12px';
+        delImgBtn.style.background = '#ff4444';
+        delImgBtn.style.color = '#fff';
+        delImgBtn.textContent = 'Delete Photo';
+        delImgBtn.onclick = async () => {
+          if (!confirm('Delete this photo?')) return;
+          const res = await deleteItem(img.id, 'image');
+          if (res.ok) {
+            toast('Photo deleted');
+            item.remove();
+          } else {
+            toast('Delete failed: ' + res.error);
+          }
+        };
+        overlay.appendChild(delImgBtn);
+      } else {
+        thread.querySelectorAll('.bubble-msg').forEach(b => b.classList.remove('edit-visible'));
+        const delBtn = overlay.querySelector('button:last-child');
+        if (delBtn && delBtn.textContent === 'Delete Photo') delBtn.remove();
+      }
+    });
+
     composer.addEventListener('submit', async (e) => {
       e.preventDefault();
       const text = input.value.trim();
@@ -285,7 +392,10 @@
       try {
         const res = await sendMessage(img.id, text);
         if (res.ok) {
-          thread.appendChild(msgEl({ t: text }, msgs.length));
+          const newMsg = msgEl({ t: text }, msgs.length);
+          // add delete button to new message if in edit mode
+          if (item.classList.contains('edit-mode')) newMsg.classList.add('edit-visible');
+          thread.appendChild(newMsg);
           input.value = '';
           msgCount.textContent = `💬 ${msgs.length + 1}`;
           msgs.push({ t: text });

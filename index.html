@@ -83,27 +83,61 @@
   }
   .back-link:hover { text-decoration: underline; }
 
-  .dropzone {
-    position: relative;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+  /* ---------- Gallery Selection ---------- */
+  .selection-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 0;
+  }
+
+  .select-btn {
+    padding: 16px 32px;
+    font: inherit; font-size: 16px; font-weight: 600;
+    color: var(--text);
     background: var(--surface);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
-    padding: 56px 32px;
-    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 980px;
     cursor: pointer;
-    transition: transform .35s cubic-bezier(.22, 1, .36, 1),
-                border-color .25s ease, background .25s ease,
-                box-shadow .35s ease;
+    transition: all .3s cubic-bezier(.22,1,.36,1);
+    display: flex; align-items: center; gap: 12px;
   }
-  .dropzone:hover, .dropzone.dragover {
-    border-color: var(--accent);
+  .select-btn:hover {
     background: var(--surface-hover);
-    transform: scale(1.015);
-    box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.15), 0 24px 60px -24px rgba(10, 132, 255, 0.35);
+    border-color: var(--accent);
+    transform: translateY(-2px);
   }
-  .dropzone input { display: none; }
+  .select-btn svg { width: 20px; height: 20px; stroke: var(--accent); }
+
+  .selection-preview {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: rise .4s cubic-bezier(.22,1,.36,1);
+  }
+  .selection-preview.show { display: flex; }
+  .selection-preview img {
+    width: 240px;
+    height: 240px;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    border: 4px solid var(--surface);
+    box-shadow: 0 20px 40px -15px rgba(0,0,0,0.4);
+    background: var(--bg);
+  }
+  .selection-preview .info {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .selection-preview .info strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 16px;
+  }
 
   .dz-icon {
     width: 56px; height: 56px; margin: 0 auto 18px;
@@ -338,26 +372,23 @@
 
   <!-- Step 2a: gallery picker -->
   <div id="galleryMode" class="hidden">
-    <button class="close-btn" data-back>×</button>
-    <label class="dropzone" id="dropzone">
-      <input type="file" id="file" accept="image/jpeg,image/png,image/webp">
-      <div class="dz-icon">
+    <button class="back-link" data-back>‹ Back</button>
+    <div class="selection-container">
+      <button class="select-btn" id="selectFileBtn">
         <svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/>
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m4-8l4-4 4 4m-4-4v12"/>
         </svg>
-      </div>
-      <div class="dz-title">Tap to choose, or drop a photo</div>
-      <div class="dz-sub">JPEG · PNG · WebP — up to 5 MB</div>
-      <div class="preview" id="preview">
+        Choose from Gallery
+      </button>
+      <input type="file" id="file" accept="image/jpeg,image/png,image/webp" class="hidden">
+      <div class="selection-preview" id="selectionPreview">
         <img id="previewImg" alt="">
-        <div class="meta">
-          <div class="name" id="previewName"></div>
-          <div class="size" id="previewSize"></div>
+        <div class="info">
+          <strong id="previewName">photo.jpg</strong>
+          <span id="previewSize">0.00 MB</span>
         </div>
       </div>
-    </label>
-    <div style="text-align:center; margin-top:20px;">
-      <button class="btn-upload" id="uploadBtn">Share Photo</button>
+      <button class="btn-upload" id="uploadBtn">Confirm & Share Photo</button>
     </div>
   </div>
 
@@ -451,16 +482,17 @@
     $('previewImg').src = URL.createObjectURL(f);
     $('previewName').textContent = f.name;
     $('previewSize').textContent = (f.size / 1024 / 1024).toFixed(2) + ' MB';
-    $('preview').classList.add('show');
+    $('selectionPreview').classList.add('show');
     uploadBtn.classList.add('show');
   }
 
   function resetGalleryMode() {
     fileInput.value = '';
-    $('preview').classList.remove('show');
+    $('selectionPreview').classList.remove('show');
     uploadBtn.classList.remove('show');
   }
 
+  $('selectFileBtn').addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
 
   const dropzone = $('dropzone');
