@@ -214,8 +214,11 @@
 
   .refresh-note {
     text-align: center;
-    padding-bottom: 60px;
+    padding-bottom: 12px;
     font-size: 13px; color: var(--text-dim);
+  }
+  .refresh-actions {
+    display: flex; justify-content: center; padding-bottom: 60px;
   }
 </style>
 </head>
@@ -243,6 +246,9 @@
 <div class="feed mode-masonry" id="feed"></div>
 <div class="empty hidden" id="empty">No photos yet — be the first from the booth.</div>
 <div class="refresh-note" id="refreshNote"></div>
+<div class="refresh-actions">
+  <button class="btn-pill btn-ghost hidden" id="newContentBtn" type="button">New photos • Refresh</button>
+</div>
 
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
 <div class="toast" id="toast"></div>
@@ -412,27 +418,61 @@
     return item;
   }
 
-  async function refresh() {
+  let latestImages = [];
+  const newContentBtn = $('newContentBtn');
+
+  function renderGallery(images) {
+    const currentMode = $('feed').className.split(' ').find(c => c.startsWith('mode-'));
+    $('feed').innerHTML = '';
+    $('count').textContent = images.length + (images.length === 1 ? ' photo' : ' photos');
+    $('empty').classList.toggle('hidden', images.length > 0);
+    images.forEach((img, i) => {
+      const item = renderItem(img, i);
+      if (currentMode === 'mode-stories') item.classList.add('mode-stories');
+      $('feed').appendChild(item);
+    });
+  }
+
+  function showNewContentNotice(count) {
+    if (!count) {
+      newContentBtn.classList.add('hidden');
+      newContentBtn.textContent = 'New photos • Refresh';
+      return;
+    }
+    newContentBtn.classList.remove('hidden');
+    newContentBtn.textContent = count === 1 ? 'New photo • Refresh' : `New photos (${count}) • Refresh`;
+  }
+
+  async function refresh({ force = false } = {}) {
     try {
       const res = await list();
       if (!res.ok) throw new Error(res.error);
-      $('count').textContent = res.images.length + (res.images.length === 1 ? ' photo' : ' photos');
-      $('empty').classList.toggle('hidden', res.images.length > 0);
-      
-      const currentMode = $('feed').className.split(' ').find(c => c.startsWith('mode-'));
-      $('feed').innerHTML = '';
-      res.images.forEach((img, i) => {
-        const item = renderItem(img, i);
-        if (currentMode === 'mode-stories') item.classList.add('mode-stories');
-        $('feed').appendChild(item);
-      });
-      $('refreshNote').textContent = 'Refreshes automatically every 20 seconds';
+      const images = res.images || [];
+      const hasPrevious = latestImages.length > 0;
+      const newCount = !hasPrevious ? 0 : images.filter(img => !latestImages.some(old => old.id === img.id)).length;
+
+      if (!force && hasPrevious && newCount > 0) {
+        latestImages = images;
+        $('refreshNote').textContent = 'Checking every 20 seconds';
+        showNewContentNotice(newCount);
+        return;
+      }
+
+      latestImages = images;
+      renderGallery(images);
+      $('refreshNote').textContent = 'Checking every 20 seconds';
+      showNewContentNotice(0);
     } catch {
       $('empty').classList.remove('hidden');
       $('empty').textContent = 'Gallery unavailable — backend not connected yet.';
       $('refreshNote').textContent = '';
+      showNewContentNotice(0);
     }
   }
+
+  newContentBtn.addEventListener('click', () => {
+    refresh({ force: true });
+  });
 
   /* ---------- Mode Switching ---------- */
   $('modeSwitcher').addEventListener('click', (e) => {
@@ -449,11 +489,11 @@
     feed.className = 'feed mode-' + mode;
 
     // Rerender items to apply mode-specific classes (like .mode-stories)
-    refresh();
+    refresh({ force: true });
   });
 
-  refresh();
-  setInterval(refresh, 20000);
+  refresh({ force: true });
+  setInterval(() => refresh(), 20000);
 </script>
 </body>
 </html>

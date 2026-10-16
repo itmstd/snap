@@ -493,21 +493,33 @@
   }
 
   $('selectFileBtn').addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+  fileInput.addEventListener('change', () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (f) setFile(f);
+  });
 
-  const dropzone = $('dropzone');
-  ['dragover', 'dragleave', 'drop'].forEach(ev =>
-    dropzone.addEventListener(ev, (e) => {
-      e.preventDefault();
-      dropzone.classList.toggle('dragover', ev === 'dragover');
-      if (ev === 'drop') {
-        const f = e.dataTransfer.files[0];
-        if (f) { fileInput.files = e.dataTransfer.files; setFile(f); }
-      }
-    })
-  );
+  const dropzone = $('galleryMode');
+  if (dropzone) {
+    ['dragover', 'dragleave', 'drop'].forEach(ev =>
+      dropzone.addEventListener(ev, (e) => {
+        e.preventDefault();
+        dropzone.classList.toggle('dragover', ev === 'dragover');
+        if (ev === 'drop') {
+          const f = e.dataTransfer && e.dataTransfer.files[0];
+          if (f) { fileInput.files = e.dataTransfer.files; setFile(f); }
+        }
+      })
+    );
+  }
 
-  uploadBtn.addEventListener('click', () => shareFile(fileInput.files[0], uploadBtn, resetGalleryMode));
+  uploadBtn.addEventListener('click', () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (!f) {
+      toast('Please choose a photo first');
+      return;
+    }
+    shareFile(f, uploadBtn, resetGalleryMode);
+  });
 
   /* ---------- Camera: templates + strips ---------- */
   const STRIP = { W: 600, H: 1800, PAD: 30, GAP: 24, BOTTOM: 120, BG: '#ffffff' };
