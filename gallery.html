@@ -32,6 +32,7 @@
     border-radius: 980px; border: none; background: transparent;
     color: var(--text-dim); cursor: pointer;
     transition: all .2s ease;
+    white-space: nowrap;
   }
   .mode-btn.active {
     background: var(--text);
@@ -102,21 +103,24 @@
     opacity: 1; pointer-events: auto;
   }
   .edit-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     padding: 8px 16px; background: #fff; color: #000;
     border: none; border-radius: 980px; font-size: 13px; font-weight: 600;
     cursor: pointer; transition: transform .2s ease;
   }
+  .edit-btn .ui-icon { width: 16px; height: 16px; }
   .edit-btn:hover { transform: scale(1.1); }
 
   /* Message delete button */
   .msg-del {
     position: absolute; right: 8px; top: 8px;
-    width: 20px; height: 20px; border-radius: 50%;
+    width: 28px; height: 28px; border-radius: 50%;
     background: rgba(255,0,0,0.6); color: #fff;
-    border: none; cursor: pointer; font-size: 12px;
+    border: none; cursor: pointer;
     display: none; align-items: center; justify-content: center;
     transition: background .2s ease;
   }
+  .msg-del .ui-icon { width: 16px; height: 16px; }
   .bubble-msg.edit-visible .msg-del { display: flex; }
   .msg-del:hover { background: rgba(255,0,0,0.9); }
 
@@ -220,6 +224,45 @@
   .refresh-actions {
     display: flex; justify-content: center; padding-bottom: 60px;
   }
+  #newContentBtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  #newContentBtn .ui-icon { width: 20px; height: 20px; }
+  .icon-attribution { padding-top: 8px; }
+
+  @media (max-width: 600px) {
+    .page-head {
+      padding: 48px 16px 24px;
+      align-items: flex-start;
+    }
+    .page-head > div {
+      width: 100%;
+      gap: 8px !important;
+      align-items: center;
+    }
+    .mode-switcher { flex: 1; min-width: 0; }
+    .mode-btn { flex: 1; min-width: 0; padding: 8px 6px; font-size: 12px; }
+    .count { white-space: nowrap; }
+    .feed { padding-right: 16px; padding-left: 16px; }
+    .composer input { padding-right: 12px; padding-left: 12px; }
+    .composer button { padding-right: 14px; padding-left: 14px; }
+  }
+
+  @media (hover: none), (max-width: 600px) {
+    .edit-overlay {
+      inset: 8px 8px auto auto;
+      width: auto;
+      background: transparent;
+      backdrop-filter: none;
+      justify-content: flex-end;
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .edit-btn { width: 44px; height: 44px; padding: 12px; }
+    .edit-btn span { display: none; }
+    .msg-del { width: 32px; height: 32px; }
+  }
 </style>
 </head>
 <body>
@@ -247,8 +290,12 @@
 <div class="empty hidden" id="empty">No photos yet — be the first from the booth.</div>
 <div class="refresh-note" id="refreshNote"></div>
 <div class="refresh-actions">
-  <button class="btn-pill btn-ghost hidden" id="newContentBtn" type="button">New photos • Refresh</button>
+  <button class="btn-pill btn-ghost hidden" id="newContentBtn" type="button" aria-label="Refresh to see new photos">
+    <img class="ui-icon" src="https://img.icons8.com/?id=85469&amp;format=png&amp;size=48&amp;color=0A84FF" alt="">
+    <span id="newContentLabel">Refresh</span>
+  </button>
 </div>
+<footer class="icon-attribution"><a href="https://icons8.com" target="_blank" rel="noreferrer">Icons by Icons8</a></footer>
 
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
 <div class="toast" id="toast"></div>
@@ -279,7 +326,10 @@
 
     const del = document.createElement('button');
     del.className = 'msg-del';
-    del.textContent = '×';
+    del.type = 'button';
+    del.setAttribute('aria-label', 'Delete message');
+    del.title = 'Delete message';
+    del.innerHTML = '<img class="ui-icon" src="https://img.icons8.com/?id=85081&amp;format=png&amp;size=48&amp;color=FFFFFF" alt="">';
     del.onclick = async (e) => {
       e.stopPropagation();
       if (!confirm('Delete this message?')) return;
@@ -309,7 +359,11 @@
     overlay.className = 'edit-overlay';
     const editBtn = document.createElement('button');
     editBtn.className = 'edit-btn';
-    editBtn.textContent = 'Edit';
+    editBtn.type = 'button';
+    editBtn.setAttribute('aria-label', 'Edit photo');
+    editBtn.title = 'Edit photo';
+    editBtn.setAttribute('aria-pressed', 'false');
+    editBtn.innerHTML = '<img class="ui-icon" src="https://img.icons8.com/?id=86373&amp;format=png&amp;size=48&amp;color=1D1D1F" alt=""><span>Edit</span>';
     overlay.appendChild(editBtn);
     wrap.appendChild(overlay);
 
@@ -319,7 +373,7 @@
     el.alt = img.name;
     wrap.appendChild(el);
     wrap.addEventListener('click', (e) => {
-      if (e.target === editBtn) return;
+      if (e.target.closest('button')) return;
       openLightbox(img.url);
     });
     item.appendChild(wrap);
@@ -361,6 +415,7 @@
     editBtn.addEventListener('click', async () => {
       const isEdit = item.classList.toggle('edit-mode');
       wrap.classList.toggle('edit-active', isEdit);
+      editBtn.setAttribute('aria-pressed', String(isEdit));
       
       if (isEdit) {
         // Show delete buttons on bubbles
@@ -368,10 +423,14 @@
         // Add delete button to image itself
         const delImgBtn = document.createElement('button');
         delImgBtn.className = 'edit-btn';
+        delImgBtn.type = 'button';
+        delImgBtn.setAttribute('aria-label', 'Delete photo');
+        delImgBtn.title = 'Delete photo';
         delImgBtn.style.marginLeft = '12px';
         delImgBtn.style.background = '#ff4444';
         delImgBtn.style.color = '#fff';
-        delImgBtn.textContent = 'Delete Photo';
+        delImgBtn.dataset.action = 'delete-photo';
+        delImgBtn.innerHTML = '<img class="ui-icon" src="https://img.icons8.com/?id=85081&amp;format=png&amp;size=48&amp;color=FFFFFF" alt=""><span>Delete Photo</span>';
         delImgBtn.onclick = async () => {
           if (!confirm('Delete this photo?')) return;
           const res = await deleteItem(img.id, 'image');
@@ -386,7 +445,7 @@
       } else {
         thread.querySelectorAll('.bubble-msg').forEach(b => b.classList.remove('edit-visible'));
         const delBtn = overlay.querySelector('button:last-child');
-        if (delBtn && delBtn.textContent === 'Delete Photo') delBtn.remove();
+        if (delBtn && delBtn.dataset.action === 'delete-photo') delBtn.remove();
       }
     });
 
@@ -418,7 +477,10 @@
     return item;
   }
 
-  let latestImages = [];
+  let displayedImages = [];
+  let hasLoadedGallery = false;
+  let pollInProgress = false;
+  let refreshRequested = false;
   const newContentBtn = $('newContentBtn');
 
   function renderGallery(images) {
@@ -428,37 +490,46 @@
     $('empty').classList.toggle('hidden', images.length > 0);
     images.forEach((img, i) => {
       const item = renderItem(img, i);
-      if (currentMode === 'mode-stories') item.classList.add('mode-stories');
+      item.classList.toggle('mode-stories', currentMode === 'mode-stories');
       $('feed').appendChild(item);
     });
+    displayedImages = images;
+    hasLoadedGallery = true;
   }
 
   function showNewContentNotice(count) {
+    const label = $('newContentLabel');
     if (!count) {
       newContentBtn.classList.add('hidden');
-      newContentBtn.textContent = 'New photos • Refresh';
+      label.textContent = 'Refresh';
+      newContentBtn.setAttribute('aria-label', 'Refresh to see new photos');
       return;
     }
     newContentBtn.classList.remove('hidden');
-    newContentBtn.textContent = count === 1 ? 'New photo • Refresh' : `New photos (${count}) • Refresh`;
+    label.textContent = count === 1 ? '1 new · Refresh' : `${count} new · Refresh`;
+    newContentBtn.setAttribute('aria-label',
+      count === 1 ? 'Refresh to see 1 new photo' : `Refresh to see ${count} new photos`);
   }
 
   async function refresh({ force = false } = {}) {
+    if (pollInProgress) {
+      if (force) refreshRequested = true;
+      return;
+    }
+    pollInProgress = true;
     try {
       const res = await list();
       if (!res.ok) throw new Error(res.error);
       const images = res.images || [];
-      const hasPrevious = latestImages.length > 0;
-      const newCount = !hasPrevious ? 0 : images.filter(img => !latestImages.some(old => old.id === img.id)).length;
+      const displayedIds = new Set(displayedImages.map(img => img.id));
+      const newCount = images.filter(img => !displayedIds.has(img.id)).length;
 
-      if (!force && hasPrevious && newCount > 0) {
-        latestImages = images;
+      if (!force && hasLoadedGallery) {
         $('refreshNote').textContent = 'Checking every 20 seconds';
         showNewContentNotice(newCount);
         return;
       }
 
-      latestImages = images;
       renderGallery(images);
       $('refreshNote').textContent = 'Checking every 20 seconds';
       showNewContentNotice(0);
@@ -467,6 +538,12 @@
       $('empty').textContent = 'Gallery unavailable — backend not connected yet.';
       $('refreshNote').textContent = '';
       showNewContentNotice(0);
+    } finally {
+      pollInProgress = false;
+      if (refreshRequested) {
+        refreshRequested = false;
+        refresh({ force: true });
+      }
     }
   }
 
@@ -488,8 +565,10 @@
     const feed = $('feed');
     feed.className = 'feed mode-' + mode;
 
-    // Rerender items to apply mode-specific classes (like .mode-stories)
-    refresh({ force: true });
+    // Change layout in place without a request or losing current form state.
+    $('feed').querySelectorAll('.item').forEach(item => {
+      item.classList.toggle('mode-stories', mode === 'stories');
+    });
   });
 
   refresh({ force: true });

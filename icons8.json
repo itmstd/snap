@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "icons": {
+    "pack": "m_outlined",
+    "sizes": [16, 20],
+    "color": "currentColor",
+    "items": {
+      "picture": { "id": "82738", "commonName": "picture" },
+      "edit": { "id": "86373", "commonName": "edit" },
+      "trash": { "id": "85081", "commonName": "trash" },
+      "refresh": { "id": "85469", "commonName": "refresh" },
+      "upload": { "id": "82721", "commonName": "upload-2" },
+      "share": { "id": "82713", "commonName": "share" }
+    }
+  }
+}

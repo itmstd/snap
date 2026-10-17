@@ -56,6 +56,7 @@ nav {
   color: var(--text); text-decoration: none;
 }
 .nav-link {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   font-size: 14px; font-weight: 500;
   color: var(--accent); text-decoration: none;
   padding: 8px 18px;
@@ -65,7 +66,14 @@ nav {
   transition: transform .3s cubic-bezier(.22,1,.36,1), background .25s ease;
 }
 .nav-link:hover { transform: scale(1.05); background: var(--surface-hover); }
-
+.ui-icon { display: block; width: 20px; height: 20px; flex: 0 0 auto; }
+.icon-attribution {
+  padding: 0 16px 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.icon-attribution a { color: inherit; }
 /* ---------- Hero ---------- */
 .hero {
   max-width: 1080px; margin: 0 auto;
@@ -106,16 +114,18 @@ nav {
 .btn-upload {
   display: none;
   margin: 8px auto 0;
-  padding: 14px 44px;
+  padding: 14px 24px;
   font: inherit; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
   color: #fff;
   background: var(--accent);
   border: none; border-radius: 980px;
   cursor: pointer;
+  align-items: center; justify-content: center; gap: 10px;
+  max-width: 100%;
   box-shadow: 0 12px 30px -10px rgba(10, 132, 255, 0.55);
   transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease, opacity .2s;
 }
-.btn-upload.show { display: block; animation: rise .4s cubic-bezier(.22,1,.36,1); }
+.btn-upload.show { display: flex; animation: rise .4s cubic-bezier(.22,1,.36,1); }
 .btn-upload:hover { transform: scale(1.04); box-shadow: 0 16px 36px -10px rgba(10,132,255,.7); }
 .btn-upload:active { transform: scale(0.97); }
 .btn-upload:disabled { opacity: .45; cursor: default; transform: none; }
@@ -167,4 +177,13 @@ nav {
 
 @media (max-width: 600px) {
   .hero { padding: 64px 24px 32px; }
+  .nav-inner { padding: 12px 16px; }
+  .nav-link { padding: 8px 12px; }
+}
+
+@media (max-width: 380px) {
+  .gallery-nav-link .nav-link-label { display: none; }
+  .gallery-nav-link { width: 44px; height: 44px; padding: 0; }
+  .viewall-link .viewall-label { display: none; }
+  .viewall-link { width: 48px; height: 48px; padding: 12px; }
 }
