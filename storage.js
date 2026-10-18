@@ -45,6 +45,30 @@ export async function deleteItem(id, type) {
   return res.json();
 }
 
+export async function submitGameScore(score) {
+  const res = await fetch(BACKEND_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ ...score, secret: SECRET, action: 'gameScore' }),
+  });
+  if (!res.ok) throw new Error(`Score submission failed (HTTP ${res.status})`);
+  return res.json();
+}
+
+export async function listGameLeaderboard(category) {
+  if (category !== 'touch' && category !== 'mouse_keyboard') {
+    throw new Error('Invalid leaderboard category');
+  }
+  const params = new URLSearchParams({
+    secret: SECRET,
+    leaderboard: '1',
+    category,
+  });
+  const res = await fetch(`${BACKEND_URL}?${params.toString()}`);
+  if (!res.ok) throw new Error(`Leaderboard request failed (HTTP ${res.status})`);
+  return res.json();
+}
+
 function readAsDataURL(file) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();

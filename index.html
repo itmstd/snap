@@ -163,6 +163,278 @@
     font-size: 13px;
     font-weight: 600;
   }
+  .emoji-picker-game-btn {
+    display: block;
+    margin: 10px 0 0 auto;
+    padding: 8px 14px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .emoji-picker-game-btn:hover { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+  .emoji-picker-game-btn:focus-visible,
+  .game-mode button:focus-visible,
+  .game-mode input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .game-mode {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(10, 132, 255, .15), transparent 60%),
+      var(--bg);
+    touch-action: none;
+  }
+  .game-arena {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .game-topbar {
+    position: absolute;
+    z-index: 4;
+    top: max(14px, env(safe-area-inset-top));
+    left: max(14px, env(safe-area-inset-left));
+    right: max(14px, env(safe-area-inset-right));
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    pointer-events: none;
+  }
+  .game-hud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: min(620px, calc(100% - 170px));
+  }
+  .game-stat {
+    min-width: 76px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    text-align: center;
+  }
+  .game-stat-label {
+    display: block;
+    color: var(--text-dim);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .game-stat-value { display: block; margin-top: 2px; font-size: 18px; font-weight: 750; }
+  .game-exit,
+  .game-leaderboard-toggle {
+    pointer-events: auto;
+    min-height: 42px;
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+  }
+  .game-leaderboard {
+    position: absolute;
+    z-index: 6;
+    top: 78px;
+    left: max(14px, env(safe-area-inset-left));
+    width: min(300px, calc(100vw - 28px));
+  }
+  .game-leaderboard-toggle {
+    position: relative;
+    padding-left: 22px;
+    border-color: rgba(255, 203, 87, .75);
+    background: linear-gradient(135deg, #a75e09, #f6c453 55%, #b57312);
+    color: #211300;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .24);
+  }
+  .game-leaderboard-toggle::before {
+    position: absolute;
+    top: 0;
+    right: 100%;
+    width: 14px;
+    height: 100%;
+    background: #d69b31;
+    clip-path: polygon(100% 0, 100% 100%, 0 82%, 0 18%);
+    content: "";
+  }
+  .game-leaderboard-panel {
+    margin-top: 10px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--bg);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+    pointer-events: auto;
+  }
+  .game-leaderboard-panel h2 { margin-bottom: 10px; font-size: 16px; }
+  .game-leaderboard-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .game-leaderboard-tab {
+    flex: 1;
+    padding: 8px 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .game-leaderboard-tab[aria-pressed="true"] { border-color: var(--accent); background: var(--surface-hover); }
+  .game-leaderboard-empty { color: var(--text-dim); font-size: 13px; line-height: 1.5; }
+  .game-reticle {
+    position: absolute;
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    border: 2px solid rgba(255, 255, 255, .9);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, .45), 0 0 18px rgba(10, 132, 255, .8);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+  .game-reticle::before,
+  .game-reticle::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background: white;
+    content: "";
+    transform: translate(-50%, -50%);
+  }
+  .game-reticle::before { width: 46px; height: 2px; }
+  .game-reticle::after { width: 2px; height: 46px; }
+  .game-target {
+    position: absolute;
+    z-index: 1;
+    padding: 6px;
+    border: 2px solid rgba(255, 255, 255, .95);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .3);
+    pointer-events: none;
+    will-change: transform;
+  }
+  .game-target img { display: block; width: 100%; height: 100%; border-radius: 11px; object-fit: cover; }
+  .game-shot-emoji {
+    position: absolute;
+    z-index: 3;
+    font-size: 30px;
+    line-height: 1;
+    pointer-events: none;
+    animation: gameShotPop .55s ease-out forwards;
+  }
+  @keyframes gameShotPop {
+    from { opacity: 1; transform: translate(-50%, -50%) scale(.5); }
+    to { opacity: 0; transform: translate(-50%, -95px) scale(1.25) rotate(20deg); }
+  }
+  .game-message {
+    position: absolute;
+    z-index: 4;
+    top: 50%;
+    left: 50%;
+    width: min(440px, calc(100% - 32px));
+    padding: 26px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background: var(--surface);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .45);
+    text-align: center;
+    transform: translate(-50%, -50%);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+  }
+  .game-message h1 { margin-bottom: 10px; font-size: clamp(24px, 6vw, 34px); }
+  .game-message p { color: var(--text-dim); font-size: 14px; line-height: 1.55; }
+  .game-message .game-primary-action { margin-top: 18px; }
+  .game-score-form {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+    text-align: left;
+  }
+  .game-score-form label { display: grid; gap: 5px; font-size: 12px; font-weight: 650; }
+  .game-score-form input {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+  }
+  .game-score-form-note,
+  .game-score-submit-status { color: var(--text-dim); font-size: 12px !important; text-align: left; }
+  .game-score-form .game-score-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-weight: 450;
+    line-height: 1.4;
+  }
+  .game-score-consent input { width: 16px; min-height: 16px; margin-top: 1px; accent-color: var(--accent); }
+  .game-score-submit-status[data-state="error"] { color: #ff6b6b; }
+  .game-score-submit-status[data-state="success"] { color: #36c98f; }
+  .game-score-form button { justify-self: center; }
+  .game-leaderboard-list { display: grid; gap: 7px; list-style: none; }
+  .game-leaderboard-entry {
+    display: grid;
+    grid-template-columns: 26px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: 12px;
+  }
+  .game-leaderboard-rank { color: var(--text-dim); font-weight: 750; }
+  .game-leaderboard-name { overflow: hidden; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+  .game-leaderboard-score { color: var(--text-dim); text-align: right; white-space: nowrap; }
+  .game-primary-action {
+    min-height: 48px;
+    padding: 12px 22px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .game-controls {
+    position: absolute;
+    z-index: 4;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
+    left: max(16px, env(safe-area-inset-left));
+    color: var(--text-dim);
+    font-size: 13px;
+    text-align: center;
+    pointer-events: none;
+  }
+  .game-controls strong { color: var(--text); }
   @media (prefers-reduced-motion: reduce) {
     .immersive-bubble {
       animation: none;
@@ -171,6 +443,21 @@
       opacity: 1;
       transform: translateX(var(--x0)) rotate(var(--r0));
     }
+    .game-shot-emoji { animation-duration: .01ms; }
+  }
+  @media (max-width: 600px) {
+    .emoji-picker { padding: 10px 10px 12px; }
+    .emoji-choice { min-width: 38px; height: 40px; font-size: 21px; }
+    .game-topbar { gap: 8px; }
+    .game-hud { gap: 5px; max-width: calc(100% - 112px); }
+    .game-stat { min-width: 52px; padding: 7px 8px; border-radius: 12px; }
+    .game-stat-label { font-size: 9px; }
+    .game-stat-value { font-size: 15px; }
+    .game-exit { min-height: 40px; padding: 8px 11px; font-size: 12px; }
+    .game-leaderboard { top: 114px; }
+    .game-target { padding: 5px; border-radius: 15px; }
+    .game-target img { border-radius: 10px; }
+    .game-message { padding: 22px 18px; }
   }
 
   /* keep interactive content above the bubble layer */
@@ -496,7 +783,55 @@
       <button class="emoji-choice" type="button" data-emoji="🔥" aria-label="Fire" aria-pressed="false">🔥</button>
       <button class="emoji-choice emoji-choice-random" type="button" data-emoji="random" aria-pressed="false">Random</button>
     </div>
+    <button class="emoji-picker-game-btn" id="openGameMode" type="button">Play photo hunt</button>
   </div>
+  <section class="game-mode hidden" id="gameMode" aria-hidden="true" aria-label="Photo hunt game">
+    <div class="game-arena" id="gameArena" tabindex="0" aria-label="Game area. Tap or click to shoot; use arrow keys and space on keyboard.">
+      <div id="gameTargets" aria-hidden="true"></div>
+      <div class="game-reticle hidden" id="gameReticle" aria-hidden="true"></div>
+    </div>
+    <header class="game-topbar">
+      <div class="game-hud" aria-live="polite">
+        <div class="game-stat"><span class="game-stat-label">Round</span><span class="game-stat-value" id="gameRoundValue">—</span></div>
+        <div class="game-stat"><span class="game-stat-label">Score</span><span class="game-stat-value" id="gameScoreValue">0</span></div>
+        <div class="game-stat"><span class="game-stat-label">Ammo</span><span class="game-stat-value" id="gameAmmoValue">—</span></div>
+        <div class="game-stat"><span class="game-stat-label">Time</span><span class="game-stat-value" id="gameTimeValue">—</span></div>
+        <div class="game-stat"><span class="game-stat-label">Lives</span><span class="game-stat-value" id="gameLivesValue">❤️❤️❤️❤️❤️</span></div>
+      </div>
+      <button class="game-exit" id="exitGameMode" type="button">Exit game</button>
+    </header>
+    <aside class="game-leaderboard">
+      <button class="game-leaderboard-toggle" id="toggleLeaderboard" type="button" aria-expanded="false" aria-controls="gameLeaderboardPanel">🏆 Top 10</button>
+      <div class="game-leaderboard-panel hidden" id="gameLeaderboardPanel">
+        <h2>Leaderboard</h2>
+        <div class="game-leaderboard-tabs" role="group" aria-label="Leaderboard control type">
+          <button class="game-leaderboard-tab" type="button" data-board="touch" aria-pressed="true">Touch</button>
+          <button class="game-leaderboard-tab" type="button" data-board="mouse_keyboard" aria-pressed="false">Mouse / keyboard</button>
+        </div>
+        <p class="game-leaderboard-empty" id="gameLeaderboardStatus">Leaderboard scores will be available after the backend is connected.</p>
+        <ol class="game-leaderboard-list" id="gameLeaderboardEntries"></ol>
+      </div>
+    </aside>
+    <div class="game-controls" id="gameControls">Tap or click to shoot. <strong>Missed shots use ammo; escaped photos cost a life.</strong></div>
+    <div class="game-message" id="gameMessage" role="dialog" aria-modal="true" aria-labelledby="gameMessageTitle">
+      <h1 id="gameMessageTitle">Photo Hunt</h1>
+      <p id="gameMessageText">Clear each round before time or ammo runs out. Every escaped photo costs one life. You have five lives and up to ten increasingly difficult rounds.</p>
+      <button class="game-primary-action" id="startGame" type="button">Start game</button>
+      <form class="game-score-form hidden" id="gameScoreForm">
+        <label for="gamePlayerName">Name</label>
+        <input id="gamePlayerName" name="name" type="text" maxlength="32" autocomplete="name" required>
+        <label for="gamePlayerEmail">Email</label>
+        <input id="gamePlayerEmail" name="email" type="email" maxlength="254" autocomplete="email" required>
+        <p class="game-score-form-note">Your name and score appear on the leaderboard. Your email is stored privately and is not verified or shown publicly.</p>
+        <label class="game-score-consent">
+          <input id="gameEmailConsent" name="emailConsent" type="checkbox" required>
+          <span>I agree to store this email with my result for leaderboard administration.</span>
+        </label>
+        <p class="game-score-submit-status" id="gameScoreSubmitStatus" role="status"></p>
+        <button class="game-primary-action" id="submitGameScore" type="submit">Submit score</button>
+      </form>
+    </div>
+  </section>
 </section>
 
 <nav>
@@ -629,7 +964,7 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
-  import { upload, list } from './storage.js';
+  import { upload, list, submitGameScore, listGameLeaderboard } from './storage.js';
   import { $, toast, initLightbox } from './shared.js';
 
   initLightbox();
@@ -940,9 +1275,25 @@
   let bubbleTimer = null;
   let bubbleBurstTimers = [];
   let imagesViewActive = false;
+  let gameModeOpen = false;
+  let gameActive = false;
   let previousBodyOverflow = '';
+  let gameState = null;
+  let gameClock = null;
+  let gameAdvanceTimer = null;
+  let gamePausedAt = null;
+  let gameElapsedBeforePause = 0;
+  let gameStartedAt = 0;
+  let gameInputCategory = null;
+  let gameRunId = null;
+  let gameRoundsCompleted = 0;
+  let gameEscapedTargets = 0;
+  let finalGameResult = null;
+  let scoreSubmissionInProgress = false;
+  let gameAim = { x: innerWidth / 2, y: innerHeight / 2 };
   let selectedConfettiEmoji = '🩷';
   const confettiEmojis = ['🩷', '😍', '🥰', '🤩', '😻', '👍', '🫶', '💖', '💞', '❤️‍🔥', '🔥'];
+  const maxGameRounds = 10;
   const playHTMLConfettiType = 'photobooth-confetti';
   const playHTMLSourceId = typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
@@ -957,7 +1308,7 @@
   }
 
   function receivePlayHTMLConfetti(payload) {
-    if (!imagesViewActive || !payload || typeof payload !== 'object') return;
+    if (!imagesViewActive || gameModeOpen || !payload || typeof payload !== 'object') return;
     if (payload.sender === playHTMLSourceId) return;
     if (!Number.isFinite(payload.x) || !Number.isFinite(payload.y)) return;
     if (payload.x < 0 || payload.x > 1 || payload.y < 0 || payload.y > 1) return;
@@ -995,6 +1346,7 @@
   }
 
   function sendPlayHTMLConfetti(x, y, emoji) {
+    if (gameModeOpen) return;
     const payload = {
       sender: playHTMLSourceId,
       x: Math.max(0, Math.min(1, x / innerWidth)),
@@ -1096,6 +1448,7 @@
       b.appendChild(img);
       if (immersive) {
         b.addEventListener('click', (event) => {
+          if (gameModeOpen) return;
           const rect = b.getBoundingClientRect();
           const x = event.detail ? event.clientX : rect.left + rect.width / 2;
           const y = event.detail ? event.clientY : rect.top + rect.height / 2;
@@ -1143,11 +1496,15 @@
     });
   });
 
-  function startBubbleFloat(immersive) {
+  function stopBubbleFloat() {
     if (bubbleTimer) clearInterval(bubbleTimer);
+    bubbleTimer = null;
     bubbleBurstTimers.forEach(clearTimeout);
     bubbleBurstTimers = [];
+  }
 
+  function startBubbleFloat(immersive) {
+    stopBubbleFloat();
     const layer = $(immersive ? 'imagesViewBubbleLayer' : 'bubbleLayer');
     layer.replaceChildren();
     if (!bubblePool.length) return;
@@ -1164,6 +1521,545 @@
     }, immersive ? 2800 : 2200);
   }
 
+  function gameRoundSettings(round) {
+    const targetCount = round + 2;
+    return {
+    targetCount,
+    ammo: targetCount + 2,
+    durationMs: Math.max(12000, 24000 - (round - 1) * 1250),
+    targetSpeed: 180 + (round - 1) * 27,
+    };
+  }
+
+  function createBouncePath(startX, startY, size, speed) {
+    const minX = 12;
+    const maxX = Math.max(minX, innerWidth - size - 12);
+    const minY = Math.min(Math.max(132, innerHeight * 0.2), Math.max(132, innerHeight - size - 100));
+    const maxY = Math.max(minY, innerHeight - size - 88);
+    let x = startX;
+    let y = startY;
+    let vx = maxX > minX
+      ? speed * (startX < (minX + maxX) / 2 ? 1 : -1)
+      : 0;
+    let vy = maxY > minY
+      ? speed * (Math.random() < 0.5 ? -1 : 1) * (0.28 + Math.random() * 0.32)
+      : 0;
+    let elapsed = 0;
+    const bounceLimit = Math.random() < 0.5 ? 1 : 2;
+    let bounceCount = 0;
+    const keyframes = [{ transform: 'translate3d(0px, 0px, 0px)' }];
+
+    while (bounceCount < bounceLimit) {
+      const timeToX = vx === 0 ? Infinity : (vx > 0 ? (maxX - x) / vx : (minX - x) / vx);
+      const timeToY = vy === 0 ? Infinity : (vy > 0 ? (maxY - y) / vy : (minY - y) / vy);
+      const step = Math.max(0, Math.min(timeToX, timeToY));
+      if (!Number.isFinite(step)) break;
+      x += vx * step;
+      y += vy * step;
+      elapsed += step * 1000;
+      if (timeToX <= step + 0.0001) vx *= -1;
+      if (timeToY <= step + 0.0001) vy *= -1;
+      bounceCount += 1;
+      keyframes.push({
+        elapsed,
+        transform: `translate3d(${x - startX}px, ${y - startY}px, 0px)`,
+      });
+    }
+
+    const exitTimeX = vx > 0
+      ? (maxX + size + 16 - x) / vx
+      : vx < 0 ? (minX - size - 16 - x) / vx : Infinity;
+    const exitTimeY = vy > 0
+      ? (maxY + size + 16 - y) / vy
+      : vy < 0 ? (minY - size - 16 - y) / vy : Infinity;
+    const exitTime = Math.min(exitTimeX, exitTimeY);
+    if (!Number.isFinite(exitTime) || exitTime <= 0) return { keyframes, durationMs: Math.max(1000, elapsed) };
+
+    x += vx * exitTime;
+    y += vy * exitTime;
+    elapsed += exitTime * 1000;
+    keyframes.push({
+      elapsed,
+      transform: `translate3d(${x - startX}px, ${y - startY}px, 0px)`,
+    });
+    return {
+      keyframes: keyframes.map((frame, index) => ({
+        offset: index === 0 ? 0 : frame.elapsed / elapsed,
+        transform: frame.transform,
+      })),
+      durationMs: elapsed,
+    };
+  }
+
+  function updateGameHud() {
+    $('gameRoundValue').textContent = gameState
+    ? `${gameState.round}/${maxGameRounds}`
+    : '—';
+    $('gameScoreValue').textContent = String(gameScore);
+    $('gameAmmoValue').textContent = gameState ? String(gameState.ammo) : '—';
+    $('gameTimeValue').textContent = gameState
+    ? String(Math.max(0, Math.ceil(gameState.timeRemainingMs / 1000)))
+    : '—';
+    $('gameLivesValue').textContent = '❤️'.repeat(gameLives) + '🖤'.repeat(5 - gameLives);
+  }
+
+  let gameScore = 0;
+  let gameLives = 5;
+
+  function createGameRunId() {
+    return typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  async function loadGameLeaderboard(category) {
+    const status = $('gameLeaderboardStatus');
+    const entriesList = $('gameLeaderboardEntries');
+    entriesList.replaceChildren();
+    status.textContent = 'Loading leaderboard…';
+    try {
+      const response = await listGameLeaderboard(category);
+      if (!response.ok || !Array.isArray(response.entries)) {
+        throw new Error(response.error || 'invalid_response');
+      }
+      if (!response.entries.length) {
+        status.textContent = 'No scores submitted for this control type yet.';
+        return;
+      }
+
+      response.entries.forEach((entry, index) => {
+        const row = document.createElement('li');
+        row.className = 'game-leaderboard-entry';
+        const rank = document.createElement('span');
+        rank.className = 'game-leaderboard-rank';
+        rank.textContent = `${index + 1}.`;
+        const name = document.createElement('span');
+        name.className = 'game-leaderboard-name';
+        name.textContent = entry.name;
+        const score = document.createElement('span');
+        score.className = 'game-leaderboard-score';
+        score.textContent = `${entry.score} pts · R${entry.roundsCompleted} · ${entry.escapedTargets} missed · ${Math.ceil(entry.elapsedMs / 1000)}s`;
+        row.append(rank, name, score);
+        entriesList.appendChild(row);
+      });
+      status.textContent = '';
+    } catch (error) {
+      console.error('Could not load the game leaderboard.', error);
+      status.textContent = 'Leaderboard unavailable. Check the backend deployment and try again.';
+    }
+  }
+
+  function showGameMessage(title, text, actionLabel, actionHandler) {
+    $('gameMessageTitle').textContent = title;
+    $('gameMessageText').textContent = text;
+    $('gameScoreForm').classList.add('hidden');
+    const button = $('startGame');
+    button.textContent = actionLabel;
+    button.onclick = actionHandler;
+    button.classList.toggle('hidden', !actionLabel);
+    $('gameMessage').classList.remove('hidden');
+  }
+
+  function openGameMode() {
+    if (!imagesViewActive) return;
+    gameModeOpen = true;
+    stopBubbleFloat();
+    $('imagesViewBubbleLayer').replaceChildren();
+    $('loveConfettiLayer').replaceChildren();
+    $('gameTargets').replaceChildren();
+    $('gameMode').classList.remove('hidden');
+    $('gameMode').classList.remove('is-paused');
+    $('gameMode').setAttribute('aria-hidden', 'false');
+    $('toggleLeaderboard').setAttribute('aria-expanded', 'false');
+    $('gameLeaderboardPanel').classList.add('hidden');
+    $('gameScoreForm').classList.add('hidden');
+    showGameMessage(
+    'Photo Hunt',
+    'Clear each round before time or ammo runs out. Every escaped photo costs one life. You have five lives and up to ten increasingly difficult rounds. Missed shots use ammo but do not cost a life.',
+    'Start game',
+    startPhotoHunt
+    );
+    $('startGame').focus();
+  }
+
+  function clearGameTimers() {
+    if (gameClock) clearInterval(gameClock);
+    if (gameAdvanceTimer) clearTimeout(gameAdvanceTimer);
+    gameClock = null;
+    gameAdvanceTimer = null;
+  }
+
+  function startPhotoHunt() {
+    if (!bubblePool.length) {
+    showGameMessage('Photos are still loading', 'Please try again in a moment.', 'Try again', startPhotoHunt);
+    return;
+    }
+    clearGameTimers();
+    gameScore = 0;
+    gameLives = 5;
+    gameStartedAt = Date.now();
+    gameElapsedBeforePause = 0;
+    gamePausedAt = null;
+    gameInputCategory = null;
+    gameRunId = createGameRunId();
+    gameRoundsCompleted = 0;
+    gameEscapedTargets = 0;
+    finalGameResult = null;
+    scoreSubmissionInProgress = false;
+    $('gameScoreForm').reset();
+    $('gameScoreForm').classList.add('hidden');
+    $('gameScoreSubmitStatus').textContent = '';
+    gameActive = true;
+    $('gameMode').classList.remove('is-paused');
+    $('gameReticle').classList.add('hidden');
+    $('gameControls').innerHTML = 'Tap or click to shoot. <strong>Missed shots use ammo; escaped photos cost a life.</strong>';
+    $('gameMessage').classList.add('hidden');
+    startGameRound(1);
+    $('gameArena').focus({ preventScroll: true });
+  }
+
+  function startGameRound(round) {
+    if (!gameActive) return;
+    const settings = gameRoundSettings(round);
+    gameState = {
+    round,
+    ammo: settings.ammo,
+    timeRemainingMs: settings.durationMs,
+    deadline: Date.now() + settings.durationMs,
+    targets: [],
+    resolving: false,
+    };
+    const targetSize = Math.round(Math.min(126, Math.max(82, innerWidth * 0.22)));
+    const minX = 12;
+    const maxX = Math.max(minX, innerWidth - targetSize - 12);
+    const minY = Math.min(Math.max(132, innerHeight * 0.2), Math.max(132, innerHeight - targetSize - 100));
+    const maxY = Math.max(minY, innerHeight - targetSize - 88);
+
+    for (let i = 0; i < settings.targetCount; i++) {
+    const target = document.createElement('div');
+    const image = document.createElement('img');
+    const photo = bubblePool[Math.floor(Math.random() * bubblePool.length)];
+    const x = Math.random() < 0.5
+      ? minX + 4 + Math.random() * Math.max(1, (maxX - minX) * 0.12)
+      : maxX - 4 - Math.random() * Math.max(1, (maxX - minX) * 0.12);
+    const verticalInset = Math.min(60, (maxY - minY) / 4);
+    const y = minY + verticalInset + Math.random() * Math.max(0, maxY - minY - verticalInset * 2);
+    target.className = 'game-target';
+    target.setAttribute('role', 'img');
+    target.setAttribute('aria-label', `Photo target ${i + 1}`);
+    target.style.width = `${targetSize}px`;
+    target.style.height = `${targetSize}px`;
+    target.style.left = `${x}px`;
+    target.style.top = `${y}px`;
+    image.src = photo.url;
+    image.alt = '';
+    image.draggable = false;
+    target.appendChild(image);
+    const targetState = { element: target, resolved: false, animation: null };
+    gameState.targets.push(targetState);
+    $('gameTargets').appendChild(target);
+    const path = createBouncePath(x, y, targetSize, settings.targetSpeed);
+    targetState.animation = target.animate(path.keyframes, {
+      duration: path.durationMs,
+      easing: 'linear',
+      fill: 'forwards',
+    });
+    targetState.animation.onfinish = () => resolveGameTarget(targetState, true);
+    }
+
+    gameAim = { x: innerWidth / 2, y: innerHeight / 2 };
+    placeGameReticle();
+    updateGameHud();
+    startGameClock();
+  }
+
+  function startGameClock() {
+    if (gameClock) clearInterval(gameClock);
+    gameClock = setInterval(() => {
+    if (!gameActive || !gameState || gamePausedAt !== null) return;
+    gameState.timeRemainingMs = Math.max(0, gameState.deadline - Date.now());
+    updateGameHud();
+    if (gameState.timeRemainingMs <= 0) resolveRemainingTargets();
+    }, 200);
+  }
+
+  function recordGameInput(category) {
+    if (!gameInputCategory) gameInputCategory = category;
+  }
+
+  function placeGameReticle() {
+    const reticle = $('gameReticle');
+    reticle.style.left = `${gameAim.x}px`;
+    reticle.style.top = `${gameAim.y}px`;
+  }
+
+  function showGameShot(x, y, emoji) {
+    const layer = $('gameTargets');
+    const particle = document.createElement('span');
+    particle.className = 'game-shot-emoji';
+    particle.textContent = emoji;
+    particle.style.left = `${x}px`;
+    particle.style.top = `${y}px`;
+    layer.appendChild(particle);
+    setTimeout(() => particle.remove(), 650);
+  }
+
+  function shootGameAt(x, y, category) {
+    if (!gameActive || !gameState || gamePausedAt !== null || gameState.ammo <= 0) return;
+    recordGameInput(category);
+    gameState.ammo -= 1;
+    const emoji = confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)];
+    let hit = null;
+    for (let i = gameState.targets.length - 1; i >= 0; i--) {
+    const target = gameState.targets[i];
+    if (target.resolved) continue;
+    const rect = target.element.getBoundingClientRect();
+    if (x >= rect.left - 5 && x <= rect.right + 5 && y >= rect.top - 5 && y <= rect.bottom + 5) {
+      hit = target;
+      break;
+    }
+    }
+    showGameShot(x, y, emoji);
+    if (hit) {
+    gameScore += 1;
+    resolveGameTarget(hit, false);
+    }
+    updateGameHud();
+    if (gameActive && gameState && gameState.ammo === 0) resolveRemainingTargets();
+  }
+
+  function resolveGameTarget(target, escaped) {
+    if (!gameActive || !gameState || target.resolved) return;
+    target.resolved = true;
+    if (target.animation) target.animation.cancel();
+    target.element.remove();
+    if (escaped) {
+    gameEscapedTargets += 1;
+    gameLives = Math.max(0, gameLives - 1);
+    if (gameLives === 0) {
+      updateGameHud();
+      finishPhotoHunt(false);
+      return;
+    }
+    }
+    updateGameHud();
+    if (gameState.targets.every((entry) => entry.resolved)) completeGameRound();
+  }
+
+  function resolveRemainingTargets() {
+    if (!gameActive || !gameState || gameState.resolving) return;
+    gameState.resolving = true;
+    if (gameClock) clearInterval(gameClock);
+    gameClock = null;
+    gameState.targets.slice().forEach((target) => {
+    if (!gameActive) return;
+    if (!target.resolved) resolveGameTarget(target, true);
+    });
+    if (gameActive && gameState && gameState.targets.every((target) => target.resolved)) {
+    gameState.resolving = false;
+    completeGameRound();
+    }
+  }
+
+  function completeGameRound() {
+    if (!gameActive || !gameState || gameState.resolving) return;
+    gameState.resolving = true;
+    if (gameClock) clearInterval(gameClock);
+    gameClock = null;
+    const clearedRound = gameState.round;
+    gameRoundsCompleted = clearedRound;
+    if (clearedRound >= maxGameRounds) {
+    finishPhotoHunt(true);
+    return;
+    }
+    $('gameMessageTitle').textContent = `Round ${clearedRound} clear!`;
+    $('gameMessageText').textContent = `Score: ${gameScore}. Get ready for round ${clearedRound + 1}.`;
+    $('startGame').classList.add('hidden');
+    $('gameMessage').classList.remove('hidden');
+    gameAdvanceTimer = setTimeout(() => {
+    $('gameMessage').classList.add('hidden');
+    startGameRound(clearedRound + 1);
+    }, 1100);
+  }
+
+  function finishPhotoHunt(clearedAllRounds) {
+    if (!gameActive) return;
+    gameActive = false;
+    clearGameTimers();
+    gamePausedAt = null;
+    $('gameMode').classList.remove('is-paused');
+    $('gameTargets').replaceChildren();
+    const elapsedMs = Math.max(0, Date.now() - gameStartedAt - gameElapsedBeforePause);
+    const elapsedSeconds = Math.floor(elapsedMs / 1000);
+    const title = clearedAllRounds ? 'All rounds cleared!' : 'Game over';
+    const controlType = gameInputCategory === 'touch'
+      ? 'Touch'
+      : gameInputCategory === 'mouse_keyboard' ? 'Mouse / keyboard' : 'Not detected';
+    finalGameResult = {
+      runId: gameRunId,
+      inputMode: gameInputCategory,
+      roundsCompleted: gameRoundsCompleted,
+      roundReached: gameState ? gameState.round : gameRoundsCompleted,
+      score: gameScore,
+      escapedTargets: gameEscapedTargets,
+      elapsedMs: Math.round(elapsedMs),
+    };
+    const categoryMessage = gameInputCategory
+      ? `Controls: ${controlType}.`
+      : 'No touch or mouse/keyboard play was recorded, so this run cannot be submitted.';
+    const summary = `Final score: ${gameScore}. ${gameRoundsCompleted} rounds cleared. ${gameLives} ${gameLives === 1 ? 'life' : 'lives'} remaining. Time: ${elapsedSeconds}s. ${categoryMessage}`;
+    showGameMessage(
+      title,
+      summary,
+      gameInputCategory ? 'Submit score' : 'Play again',
+      gameInputCategory ? openGameScoreForm : startPhotoHunt
+    );
+    updateGameHud();
+  }
+
+  function openGameScoreForm() {
+    if (!finalGameResult || !finalGameResult.inputMode) return;
+    $('gameScoreForm').classList.remove('hidden');
+    $('gameScoreSubmitStatus').textContent = '';
+    $('gamePlayerName').focus();
+  }
+
+  $('gameScoreForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!finalGameResult || scoreSubmissionInProgress) return;
+    const submitButton = $('submitGameScore');
+    const status = $('gameScoreSubmitStatus');
+    scoreSubmissionInProgress = true;
+    submitButton.disabled = true;
+    status.dataset.state = '';
+    status.textContent = 'Submitting score…';
+    try {
+      const result = await submitGameScore({
+        ...finalGameResult,
+        name: $('gamePlayerName').value.trim(),
+        email: $('gamePlayerEmail').value.trim(),
+        emailConsent: $('gameEmailConsent').checked,
+      });
+      if (!result.ok) {
+        const messages = {
+          bad_score: 'The score details could not be validated. Please start a new game and try again.',
+          rate_limited: 'Too many score submissions. Please wait before trying again.',
+          busy: 'The leaderboard is busy. Please try again shortly.',
+          leaderboard_unavailable: 'Score submission is temporarily unavailable. Please try again.',
+        };
+        throw new Error(messages[result.error] || 'Score submission failed. Please try again.');
+      }
+      status.dataset.state = 'success';
+      status.textContent = result.duplicate
+        ? 'This game result was already submitted.'
+        : 'Score submitted. Your email is stored privately and is not displayed.';
+      $('startGame').textContent = 'Play again';
+      $('startGame').onclick = startPhotoHunt;
+      $('startGame').classList.remove('hidden');
+      loadGameLeaderboard(finalGameResult.inputMode);
+    } catch (error) {
+      console.error('Could not submit the game score.', error);
+      status.dataset.state = 'error';
+      status.textContent = error instanceof Error
+        ? error.message
+        : 'Score submission failed. Please try again.';
+    } finally {
+      scoreSubmissionInProgress = false;
+      submitButton.disabled = false;
+    }
+  });
+
+  function closeGameMode(restoreFloatingPhotos = true) {
+    if (!gameModeOpen) return;
+    gameActive = false;
+    gameModeOpen = false;
+    gameState = null;
+    gamePausedAt = null;
+    clearGameTimers();
+    $('gameTargets').replaceChildren();
+    $('gameMode').classList.add('hidden');
+    $('gameMode').classList.remove('is-paused');
+    $('gameMode').setAttribute('aria-hidden', 'true');
+    $('openGameMode').focus();
+    if (restoreFloatingPhotos && imagesViewActive) startBubbleFloat(true);
+  }
+
+  $('openGameMode').addEventListener('click', openGameMode);
+  $('exitGameMode').addEventListener('click', () => closeGameMode());
+  $('toggleLeaderboard').addEventListener('click', () => {
+    const panel = $('gameLeaderboardPanel');
+    const isOpen = panel.classList.toggle('hidden') === false;
+    $('toggleLeaderboard').setAttribute('aria-expanded', String(isOpen));
+    if (isOpen) {
+      const selected = document.querySelector('.game-leaderboard-tab[aria-pressed="true"]');
+      loadGameLeaderboard(selected.dataset.board);
+    }
+  });
+  document.querySelectorAll('.game-leaderboard-tab').forEach((button) => {
+    button.addEventListener('click', () => {
+    document.querySelectorAll('.game-leaderboard-tab').forEach((tab) => {
+      tab.setAttribute('aria-pressed', String(tab === button));
+    });
+    const category = button.dataset.board === 'touch' ? 'Touch' : 'Mouse / keyboard';
+    $('gameLeaderboardStatus').textContent =
+      `Loading ${category.toLowerCase()} leaderboard…`;
+    $('gameLeaderboardPanel').classList.add('hidden');
+    $('toggleLeaderboard').setAttribute('aria-expanded', 'false');
+    $('toggleLeaderboard').focus();
+    loadGameLeaderboard(button.dataset.board);
+    });
+  });
+  $('gameArena').addEventListener('pointerdown', (event) => {
+    if (!gameActive || !event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    event.preventDefault();
+    $('gameReticle').classList.add('hidden');
+    const category = event.pointerType === 'touch' ? 'touch' : 'mouse_keyboard';
+    shootGameAt(event.clientX, event.clientY, category);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (!gameModeOpen || !gameActive) return;
+    if (event.target instanceof HTMLElement && event.target.closest('button, input, a, select, textarea')) return;
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' ||
+      event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+    event.preventDefault();
+    recordGameInput('mouse_keyboard');
+    const step = event.shiftKey ? 70 : 36;
+    if (event.key === 'ArrowLeft') gameAim.x -= step;
+    if (event.key === 'ArrowRight') gameAim.x += step;
+    if (event.key === 'ArrowUp') gameAim.y -= step;
+    if (event.key === 'ArrowDown') gameAim.y += step;
+    gameAim.x = Math.max(18, Math.min(innerWidth - 18, gameAim.x));
+    gameAim.y = Math.max(18, Math.min(innerHeight - 18, gameAim.y));
+    $('gameReticle').classList.remove('hidden');
+    placeGameReticle();
+    } else if (event.code === 'Space') {
+    event.preventDefault();
+    $('gameReticle').classList.remove('hidden');
+    shootGameAt(gameAim.x, gameAim.y, 'mouse_keyboard');
+    }
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!gameActive || !gameState) return;
+    if (document.hidden && gamePausedAt === null) {
+    gamePausedAt = Date.now();
+    gameState.timeRemainingMs = Math.max(0, gameState.deadline - gamePausedAt);
+    if (gameClock) clearInterval(gameClock);
+    gameClock = null;
+    gameState.targets.forEach((target) => target.animation.pause());
+    $('gameMode').classList.add('is-paused');
+    } else if (!document.hidden && gamePausedAt !== null) {
+    const now = Date.now();
+    gameElapsedBeforePause += now - gamePausedAt;
+    gamePausedAt = null;
+    gameState.deadline = now + gameState.timeRemainingMs;
+    gameState.targets.forEach((target) => {
+      if (!target.resolved) target.animation.play();
+    });
+    $('gameMode').classList.remove('is-paused');
+    startGameClock();
+    }
+  });
+
   function openImagesView() {
     imagesViewActive = true;
     previousBodyOverflow = document.body.style.overflow;
@@ -1176,6 +2072,7 @@
   }
 
   function closeImagesView() {
+    closeGameMode(false);
     imagesViewActive = false;
     $('loveConfettiLayer').replaceChildren();
     $('imagesView').classList.add('hidden');
@@ -1189,11 +2086,12 @@
   $('closeImagesView').addEventListener('click', closeImagesView);
   document.addEventListener('keydown', (event) => {
     if (!imagesViewActive) return;
-    if (event.key === 'Escape') closeImagesView();
+    if (event.key === 'Escape' && gameModeOpen) closeGameMode();
+    else if (event.key === 'Escape') closeImagesView();
     else if (event.key === 'Tab') {
       const focusable = Array.from(
         $('imagesView').querySelectorAll('button:not(:disabled)')
-      );
+      ).filter((button) => button.getClientRects().length);
       if (!focusable.length) {
         event.preventDefault();
         return;
